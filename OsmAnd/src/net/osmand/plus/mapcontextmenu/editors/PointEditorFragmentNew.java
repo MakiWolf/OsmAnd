@@ -22,6 +22,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
@@ -36,6 +37,7 @@ import androidx.appcompat.content.res.AppCompatResources;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -52,6 +54,7 @@ import net.osmand.plus.helpers.AndroidUiHelper;
 import net.osmand.plus.helpers.ColorDialogs;
 import net.osmand.plus.mapcontextmenu.MapContextMenu;
 import net.osmand.plus.mapcontextmenu.other.HorizontalSelectionAdapter;
+import net.osmand.plus.track.CustomColorBottomSheet;
 import net.osmand.plus.widgets.FlowLayout;
 import net.osmand.util.Algorithms;
 
@@ -71,6 +74,7 @@ import static net.osmand.data.FavouritePoint.DEFAULT_BACKGROUND_TYPE;
 import static net.osmand.data.FavouritePoint.DEFAULT_UI_ICON_ID;
 import static net.osmand.plus.FavouritesDbHelper.FavoriteGroup.PERSONAL_CATEGORY;
 import static net.osmand.plus.FavouritesDbHelper.FavoriteGroup.isPersonalCategoryDisplayName;
+import static net.osmand.plus.views.layers.POIMapLayer.log;
 
 public abstract class PointEditorFragmentNew extends BaseOsmAndFragment {
 
@@ -101,6 +105,8 @@ public abstract class PointEditorFragmentNew extends BaseOsmAndFragment {
 	private EditText descriptionEdit;
 	private EditText addressEdit;
 	private int layoutHeightPrevious = 0;
+	private List<Integer> customColors;
+	private Fragment target;
 
 	@Override
 	public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -457,18 +463,93 @@ public abstract class PointEditorFragmentNew extends BaseOsmAndFragment {
 		setSelectedItemWithScroll(getCategoryInitValue());
 	}
 
+	private List<Integer> getCustomColors() {
+		List<Integer> colors = new ArrayList<>();
+		List<String> colorNames = app.getSettings().CUSTOM_TRACK_COLORS.getStringsList();
+		if (colorNames != null) {
+			for (String colorHex : colorNames) {
+				try {
+					if (!Algorithms.isEmpty(colorHex)) {
+						int color = Algorithms.parseColor(colorHex);
+						colors.add(color);
+					}
+				} catch (IllegalArgumentException e) {
+					log.error(e);
+				}
+			}
+		}
+
+		return colors;
+	}
+	private View createCircleView(ViewGroup rootView) {
+		LayoutInflater themedInflater = UiUtilities.getInflater(view.getContext(), nightMode);
+		View circleView = themedInflater.inflate(R.layout.point_editor_button, rootView, false);
+		ImageView outline = circleView.findViewById(R.id.outline);
+		int colorId = nightMode ? R.color.stroked_buttons_and_links_outline_dark : R.color.stroked_buttons_and_links_outline_light;
+		Drawable contourIcon = app.getUIUtilities().getIcon(R.drawable.bg_point_circle_contour, colorId);
+		outline.setImageDrawable(contourIcon);
+		return circleView;
+	}
+
+	private View createAddCustomColorItemView(FlowLayout rootView) {
+		View colorItemView = createCircleView(rootView);
+		ImageView backgroundCircle = colorItemView.findViewById(R.id.background);
+
+		int bgColorId = nightMode ? R.color.activity_background_color_dark : R.color.activity_background_color_light;
+		Drawable backgroundIcon = app.getUIUtilities().getIcon(R.drawable.bg_point_circle, bgColorId);
+
+		ImageView icon = colorItemView.findViewById(R.id.icon);
+		icon.setVisibility(View.VISIBLE);
+		int activeColorResId = nightMode ? R.color.icon_color_active_dark : R.color.icon_color_active_light;
+		icon.setImageDrawable(app.getUIUtilities().getIcon(R.drawable.ic_action_plus, activeColorResId));
+
+		backgroundCircle.setImageDrawable(backgroundIcon);
+		backgroundCircle.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				MapActivity mapActivity = getMapActivity();
+				if (mapActivity != null) {
+					CustomColorBottomSheet.showInstance(mapActivity.getSupportFragmentManager(), target, null);
+				}
+			}
+		});
+		return colorItemView;
+	}
+
+	private View createDividerView(FlowLayout rootView) {
+		LayoutInflater themedInflater = UiUtilities.getInflater(view.getContext(), nightMode);
+		View divider = themedInflater.inflate(R.layout.simple_divider_item, rootView, false);
+
+		LinearLayout dividerContainer = new LinearLayout(view.getContext());
+		dividerContainer.addView(divider);
+		dividerContainer.setPadding(0, AndroidUtils.dpToPx(app, 1), 0, AndroidUtils.dpToPx(app, 5));
+
+		return dividerContainer;
+	}
+
 	private void createColorSelector() {
 		FlowLayout selectColor = view.findViewById(R.id.select_color);
+		selectColor.removeAllViews();
+		customColors = getCustomColors();
+
+		for (int color : customColors) {
+			selectColor.addView(createColorItemView(color, selectColor, true));
+		}
+		if (customColors.size() < 6) {
+			selectColor.addView(createAddCustomColorItemView(selectColor));
+		}
+		selectColor.addView(createDividerView(selectColor));
+
 		for (int color : ColorDialogs.pallette) {
-			selectColor.addView(createColorItemView(color, selectColor), new FlowLayout.LayoutParams(0, 0));
+			selectColor.addView(createColorItemView(color, selectColor,false), new FlowLayout.LayoutParams(0, 0));
 		}
 		int customColor = getPointColor();
 		if (!ColorDialogs.isPaletteColor(customColor)) {
-			selectColor.addView(createColorItemView(customColor, selectColor), new FlowLayout.LayoutParams(0, 0));
+			selectColor.addView(createColorItemView(customColor, selectColor,false), new FlowLayout.LayoutParams(0, 0));
 		}
 	}
 
-	private View createColorItemView(@ColorInt final int color, final FlowLayout rootView) {
+	private View createColorItemView(@ColorInt final int color, final FlowLayout rootView, boolean customColor) {
 		FrameLayout colorItemView = (FrameLayout) UiUtilities.getInflater(getContext(), nightMode)
 				.inflate(R.layout.point_editor_button, rootView, false);
 		ImageView outline = colorItemView.findViewById(R.id.outline);
