@@ -13,17 +13,25 @@ import net.osmand.data.LatLon;
 import net.osmand.map.ITileSource;
 import net.osmand.map.TileSourceManager;
 import net.osmand.map.TileSourceManager.TileSourceTemplate;
+import net.osmand.plus.FavouritesDbHelper.FavoriteGroup;
 import net.osmand.plus.OsmandApplication;
 import net.osmand.plus.OsmandPlugin;
 import net.osmand.plus.SQLiteTileSource;
+import net.osmand.plus.activities.LocalIndexHelper;
+import net.osmand.plus.activities.LocalIndexInfo;
 import net.osmand.plus.audionotes.AudioVideoNotesPlugin;
 import net.osmand.plus.audionotes.AudioVideoNotesPlugin.Recording;
+import net.osmand.plus.download.ui.AbstractLoadLocalIndexTask;
 import net.osmand.plus.helpers.AvoidSpecificRoads.AvoidRoadInfo;
 import net.osmand.plus.helpers.GpxUiHelper;
 import net.osmand.plus.helpers.GpxUiHelper.GPXInfo;
+import net.osmand.plus.osmedit.OpenstreetmapPoint;
+import net.osmand.plus.osmedit.OsmEditingPlugin;
+import net.osmand.plus.osmedit.OsmNotesPoint;
 import net.osmand.plus.poi.PoiUIFilter;
 import net.osmand.plus.quickaction.QuickAction;
 import net.osmand.plus.quickaction.QuickActionRegistry;
+import net.osmand.plus.settings.backend.ApplicationMode;
 import net.osmand.plus.settings.backend.ApplicationMode.ApplicationModeBean;
 import net.osmand.plus.settings.backend.ExportSettingsType;
 
@@ -40,6 +48,8 @@ import java.util.Map;
 import java.util.Set;
 
 import static net.osmand.IndexConstants.OSMAND_SETTINGS_FILE_EXT;
+import static net.osmand.plus.settings.backend.backup.FileSettingsItem.*;
+import static net.osmand.plus.activities.LocalIndexHelper.LocalIndexType;
 
 /*
 	Usage:
@@ -427,7 +437,7 @@ public class SettingsHelper {
 		return settingsItems;
 	}
 
-	public Map<ExportSettingsType, List<?>> getAdditionalData() {
+	public Map<ExportSettingsType, List<?>> getAdditionalData(boolean globalExport) {
 		Map<ExportSettingsType, List<?>> dataList = new HashMap<>();
 
 		QuickActionRegistry registry = app.getQuickActionRegistry();
@@ -505,7 +515,70 @@ public class SettingsHelper {
 				dataList.put(ExportSettingsType.TRACKS, files);
 			}
 		}
+		if (globalExport) {
+			List<ApplicationModeBean> appModeBeans = new ArrayList<>();
+			for (ApplicationMode mode : ApplicationMode.allPossibleValues()) {
+				appModeBeans.add(mode.toModeBean());
+			}
+			dataList.put(ExportSettingsType.PROFILE, appModeBeans);
+		}
+		OsmEditingPlugin osmEditingPlugin = OsmandPlugin.getPlugin(OsmEditingPlugin.class);
+		if (osmEditingPlugin != null) {
+			List<OsmNotesPoint> notesPointList = osmEditingPlugin.getDBBug().getOsmbugsPoints();
+			if (!notesPointList.isEmpty()) {
+				dataList.put(ExportSettingsType.OSM_NOTES, notesPointList);
+			}
+			List<OpenstreetmapPoint> editsPointList = osmEditingPlugin.getDBPOI().getOpenstreetmapPoints();
+			if (!editsPointList.isEmpty()) {
+				dataList.put(ExportSettingsType.OSM_EDITS, editsPointList);
+			}
+		}
+		List<FavoriteGroup> favoriteGroups = app.getFavorites().getFavoriteGroups();
+		if (!favoriteGroups.isEmpty()) {
+			dataList.put(ExportSettingsType.FAVORITES, favoriteGroups);
+		}
+		List<LocalIndexInfo> localIndexInfoList = getVoiceIndexInfo();
+		List<File> files;
+		files = getFilesByType(localIndexInfoList, LocalIndexType.MAP_DATA, LocalIndexType.TILES_DATA,
+				LocalIndexType.SRTM_DATA, LocalIndexType.WIKI_DATA);
+		if (!files.isEmpty()) {
+			dataList.put(ExportSettingsType.OFFLINE_MAPS, files);
+		}
+		files = getFilesByType(localIndexInfoList, LocalIndexType.TTS_VOICE_DATA);
+		if (!files.isEmpty()) {
+			dataList.put(ExportSettingsType.TTS_VOICE, files);
+		}
+		files = getFilesByType(localIndexInfoList, LocalIndexType.VOICE_DATA);
+		if (!files.isEmpty()) {
+			dataList.put(ExportSettingsType.VOICE, files);
+		}
 		return dataList;
+	}
+
+	private List<LocalIndexInfo> getVoiceIndexInfo() {
+		return new LocalIndexHelper(app).getLocalIndexData(new AbstractLoadLocalIndexTask() {
+			@Override
+			public void loadFile(LocalIndexInfo... loaded) {
+			}
+		});
+	}
+
+	private List<File> getFilesByType(List<LocalIndexInfo> localVoiceFileList, LocalIndexType... localIndexType) {
+		List<File> files = new ArrayList<>();
+		for (LocalIndexInfo map : localVoiceFileList) {
+			File file = new File(map.getPathToData());
+			boolean filtered = false;
+			for (LocalIndexType type : localIndexType) {
+				if (map.getType() == type) {
+					filtered = true;
+					break;
+				}
+			}
+			if (file.exists() && filtered) {
+				files.add(file);
+			}
+		}
+		return files;
 	}
 
 	public List<SettingsItem> prepareAdditionalSettingsItems(List<? super Object> data) {
@@ -514,6 +587,11 @@ public class SettingsHelper {
 		List<PoiUIFilter> poiUIFilters = new ArrayList<>();
 		List<ITileSource> tileSourceTemplates = new ArrayList<>();
 		List<AvoidRoadInfo> avoidRoads = new ArrayList<>();
+		List<ApplicationModeBean> appModeBeans = new ArrayList<>();
+		List<FavoriteGroup> favoriteGroups = new ArrayList<>();
+		List<OsmNotesPoint> osmNotesPointList = new ArrayList<>();
+		List<OpenstreetmapPoint> osmEditsPointList = new ArrayList<>();
+
 		for (Object object : data) {
 			if (object instanceof QuickAction) {
 				quickActions.add((QuickAction) object);
@@ -529,6 +607,14 @@ public class SettingsHelper {
 				}
 			} else if (object instanceof AvoidRoadInfo) {
 				avoidRoads.add((AvoidRoadInfo) object);
+			} else if (object instanceof ApplicationModeBean) {
+				appModeBeans.add((ApplicationModeBean) object);
+			} else if (object instanceof OsmNotesPoint) {
+				osmNotesPointList.add((OsmNotesPoint) object);
+			} else if (object instanceof OpenstreetmapPoint) {
+				osmEditsPointList.add((OpenstreetmapPoint) object);
+			} else if (object instanceof FavoriteGroup) {
+				favoriteGroups.add((FavoriteGroup) object);
 			}
 		}
 		if (!quickActions.isEmpty()) {
@@ -543,6 +629,23 @@ public class SettingsHelper {
 		if (!avoidRoads.isEmpty()) {
 			settingsItems.add(new AvoidRoadsSettingsItem(app, avoidRoads));
 		}
+		if (!appModeBeans.isEmpty()) {
+			for (ApplicationModeBean modeBean : appModeBeans) {
+				ApplicationMode mode = ApplicationMode.valueOfStringKey(modeBean.stringKey, null);
+				if (mode != null) {
+					settingsItems.add(new ProfileSettingsItem(app, mode));
+				}
+			}
+		}
+		if (!osmNotesPointList.isEmpty()) {
+			settingsItems.add(new OsmNotesSettingsItem(app, osmNotesPointList));
+		}
+		if (!osmEditsPointList.isEmpty()) {
+			settingsItems.add(new OsmEditsSettingsItem(app, osmEditsPointList));
+		}
+		if (!favoriteGroups.isEmpty()) {
+			settingsItems.add(new FavoritesSettingsItem(app, favoriteGroups));
+		}
 		return settingsItems;
 	}
 
@@ -556,7 +659,15 @@ public class SettingsHelper {
 		List<File> renderFilesList = new ArrayList<>();
 		List<File> multimediaFilesList = new ArrayList<>();
 		List<File> tracksFilesList = new ArrayList<>();
+		List<File> ttsVoiceFilesList = new ArrayList<>();
+		List<File> voiceFilesList = new ArrayList<>();
+		List<FileSettingsItem> mapFilesList = new ArrayList<>();
 		List<AvoidRoadInfo> avoidRoads = new ArrayList<>();
+		List<GlobalSettingsItem> globalSettingsItems = new ArrayList<>();
+		List<OsmNotesPoint> notesPointList = new ArrayList<>();
+		List<OpenstreetmapPoint> editsPointList = new ArrayList<>();
+		List<FavoriteGroup> favoriteGroups = new ArrayList<>();
+
 		for (SettingsItem item : settingsItems) {
 			switch (item.getType()) {
 				case PROFILE:
@@ -564,14 +675,20 @@ public class SettingsHelper {
 					break;
 				case FILE:
 					FileSettingsItem fileItem = (FileSettingsItem) item;
-					if (fileItem.getSubtype() == FileSettingsItem.FileSubtype.RENDERING_STYLE) {
+					if (fileItem.getSubtype() == FileSubtype.RENDERING_STYLE) {
 						renderFilesList.add(fileItem.getFile());
-					} else if (fileItem.getSubtype() == FileSettingsItem.FileSubtype.ROUTING_CONFIG) {
+					} else if (fileItem.getSubtype() == FileSubtype.ROUTING_CONFIG) {
 						routingFilesList.add(fileItem.getFile());
-					} else if (fileItem.getSubtype() == FileSettingsItem.FileSubtype.MULTIMEDIA_NOTES) {
+					} else if (fileItem.getSubtype() == FileSubtype.MULTIMEDIA_NOTES) {
 						multimediaFilesList.add(fileItem.getFile());
-					} else if (fileItem.getSubtype() == FileSettingsItem.FileSubtype.GPX) {
+					} else if (fileItem.getSubtype() == FileSubtype.GPX) {
 						tracksFilesList.add(fileItem.getFile());
+					} else if (fileItem.getSubtype().isMap()) {
+						mapFilesList.add(fileItem);
+					} else if (fileItem.getSubtype() == FileSubtype.TTS_VOICE) {
+						ttsVoiceFilesList.add(fileItem.getFile());
+					} else if (fileItem.getSubtype() == FileSubtype.VOICE) {
+						voiceFilesList.add(fileItem.getFile());
 					}
 					break;
 				case QUICK_ACTIONS:
@@ -606,6 +723,29 @@ public class SettingsHelper {
 						avoidRoads.addAll(avoidRoadsItem.getItems());
 					}
 					break;
+				case GLOBAL:
+					globalSettingsItems.add((GlobalSettingsItem) item);
+					break;
+				case OSM_NOTES:
+					OsmNotesSettingsItem osmNotesSettingsItem = (OsmNotesSettingsItem) item;
+					if (importComplete) {
+						notesPointList.addAll(osmNotesSettingsItem.getAppliedItems());
+					} else {
+						notesPointList.addAll(osmNotesSettingsItem.getItems());
+					}
+					break;
+				case OSM_EDITS:
+					OsmEditsSettingsItem osmEditsSettingsItem = (OsmEditsSettingsItem) item;
+					if (importComplete) {
+						editsPointList.addAll(osmEditsSettingsItem.getAppliedItems());
+					} else {
+						editsPointList.addAll(osmEditsSettingsItem.getItems());
+					}
+					break;
+				case FAVOURITES:
+					FavoritesSettingsItem favoritesSettingsItem = (FavoritesSettingsItem) item;
+					favoriteGroups.addAll(favoritesSettingsItem.getItems());
+					break;
 				default:
 					break;
 			}
@@ -637,6 +777,27 @@ public class SettingsHelper {
 		}
 		if (!tracksFilesList.isEmpty()) {
 			settingsToOperate.put(ExportSettingsType.TRACKS, tracksFilesList);
+		}
+		if (!globalSettingsItems.isEmpty()) {
+			settingsToOperate.put(ExportSettingsType.GLOBAL, globalSettingsItems);
+		}
+		if (!notesPointList.isEmpty()) {
+			settingsToOperate.put(ExportSettingsType.OSM_NOTES, notesPointList);
+		}
+		if (!editsPointList.isEmpty()) {
+			settingsToOperate.put(ExportSettingsType.OSM_EDITS, editsPointList);
+		}
+		if (!mapFilesList.isEmpty()) {
+			settingsToOperate.put(ExportSettingsType.OFFLINE_MAPS, mapFilesList);
+		}
+		if (!favoriteGroups.isEmpty()) {
+			settingsToOperate.put(ExportSettingsType.FAVORITES, favoriteGroups);
+		}
+		if (!ttsVoiceFilesList.isEmpty()) {
+			settingsToOperate.put(ExportSettingsType.TTS_VOICE, ttsVoiceFilesList);
+		}
+		if (!voiceFilesList.isEmpty()) {
+			settingsToOperate.put(ExportSettingsType.VOICE, voiceFilesList);
 		}
 		return settingsToOperate;
 	}

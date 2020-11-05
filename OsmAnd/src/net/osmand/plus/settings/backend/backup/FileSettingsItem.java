@@ -18,6 +18,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.zip.ZipOutputStream;
 
 public class FileSettingsItem extends StreamSettingsItem {
 
@@ -26,9 +27,12 @@ public class FileSettingsItem extends StreamSettingsItem {
 		OTHER("other", ""),
 		ROUTING_CONFIG("routing_config", IndexConstants.ROUTING_PROFILES_DIR),
 		RENDERING_STYLE("rendering_style", IndexConstants.RENDERERS_DIR),
+		WIKI_MAP("wiki_map", IndexConstants.WIKI_INDEX_DIR),
+		SRTM_MAP("srtm_map", IndexConstants.SRTM_INDEX_DIR),
 		OBF_MAP("obf_map", IndexConstants.MAPS_PATH),
 		TILES_MAP("tiles_map", IndexConstants.TILES_INDEX_DIR),
 		GPX("gpx", IndexConstants.GPX_INDEX_DIR),
+		TTS_VOICE("tts_voice", IndexConstants.VOICE_INDEX_DIR),
 		VOICE("voice", IndexConstants.VOICE_INDEX_DIR),
 		TRAVEL("travel", IndexConstants.WIKIVOYAGE_INDEX_DIR),
 		MULTIMEDIA_NOTES("multimedia_notes", IndexConstants.AV_INDEX_DIR);
@@ -39,6 +43,14 @@ public class FileSettingsItem extends StreamSettingsItem {
 		FileSubtype(String subtypeName, String subtypeFolder) {
 			this.subtypeName = subtypeName;
 			this.subtypeFolder = subtypeFolder;
+		}
+
+		public boolean isMap() {
+			return this == OBF_MAP || this == WIKI_MAP || this == SRTM_MAP || this == TILES_MAP;
+		}
+
+		public boolean isDirectory() {
+			return this == TTS_VOICE || this == VOICE;
 		}
 
 		public String getSubtypeName() {
@@ -58,6 +70,11 @@ public class FileSettingsItem extends StreamSettingsItem {
 			return null;
 		}
 
+		public static FileSubtype getSubtypeByPath(@NonNull OsmandApplication app, @NonNull String fileName) {
+			fileName = fileName.replace(app.getAppPath(null).getPath(), "");
+			return getSubtypeByFileName(fileName);
+		}
+
 		public static FileSubtype getSubtypeByFileName(@NonNull String fileName) {
 			String name = fileName;
 			if (fileName.startsWith(File.separator)) {
@@ -68,8 +85,23 @@ public class FileSettingsItem extends StreamSettingsItem {
 					case UNKNOWN:
 					case OTHER:
 						break;
+					case SRTM_MAP:
+						if (name.endsWith(IndexConstants.BINARY_SRTM_MAP_INDEX_EXT)) {
+							return subtype;
+						}
+						break;
+					case WIKI_MAP:
+						if (name.endsWith(IndexConstants.BINARY_WIKI_MAP_INDEX_EXT)) {
+							return subtype;
+						}
+						break;
 					case OBF_MAP:
-						if (name.endsWith(IndexConstants.BINARY_MAP_INDEX_EXT)) {
+						if (name.endsWith(IndexConstants.BINARY_MAP_INDEX_EXT) && !name.contains(File.separator)) {
+							return subtype;
+						}
+						break;
+					case TTS_VOICE:
+						if (name.startsWith(subtype.subtypeFolder) && name.endsWith(IndexConstants.VOICE_PROVIDER_SUFFIX)) {
 							return subtype;
 						}
 						break;
@@ -91,8 +123,9 @@ public class FileSettingsItem extends StreamSettingsItem {
 	}
 
 	protected File file;
-	private File appPath;
+	private final File appPath;
 	protected FileSubtype subtype;
+	private long size;
 
 	public FileSettingsItem(@NonNull OsmandApplication app, @NonNull File file) throws IllegalArgumentException {
 		super(app, file.getPath().replace(app.getAppPath(null).getPath(), ""));
@@ -171,6 +204,14 @@ public class FileSettingsItem extends StreamSettingsItem {
 		}
 	}
 
+	public long getSize() {
+		return size;
+	}
+
+	public void setSize(long size) {
+		this.size = size;
+	}
+
 	@NonNull
 	public File getFile() {
 		return file;
@@ -204,9 +245,8 @@ public class FileSettingsItem extends StreamSettingsItem {
 	SettingsItemReader<? extends SettingsItem> getReader() {
 		return new StreamSettingsItemReader(this) {
 			@Override
-			public void readFromStream(@NonNull InputStream inputStream) throws IOException, IllegalArgumentException {
+			public void readFromStream(@NonNull InputStream inputStream, File dest) throws IOException, IllegalArgumentException {
 				OutputStream output;
-				File dest = FileSettingsItem.this.file;
 				if (dest.exists() && !shouldReplace) {
 					dest = renameFile(dest);
 				}
@@ -232,11 +272,45 @@ public class FileSettingsItem extends StreamSettingsItem {
 	@Override
 	public SettingsItemWriter<? extends SettingsItem> getWriter() {
 		try {
-			setInputStream(new FileInputStream(file));
+			if (!file.isDirectory()) {
+				setInputStream(new FileInputStream(file));
+			}
 		} catch (FileNotFoundException e) {
 			warnings.add(app.getString(R.string.settings_item_read_error, file.getName()));
 			SettingsHelper.LOG.error("Failed to set input stream from file: " + file.getName(), e);
 		}
-		return super.getWriter();
+		return new StreamSettingsItemWriter(this) {
+
+			@Override
+			public void writeEntry(String fileName, @NonNull ZipOutputStream zos) throws IOException {
+				if (getSubtype().isDirectory()) {
+					File file = getFile();
+					zipDirsWithFiles(file, zos);
+				} else {
+					super.writeEntry(fileName, zos);
+				}
+			}
+
+			public void zipDirsWithFiles(File f, ZipOutputStream zos)
+					throws IOException {
+				if (f == null) {
+					return;
+				}
+				if (f.isDirectory()) {
+					File[] fs = f.listFiles();
+					if (fs != null) {
+						for (File c : fs) {
+							zipDirsWithFiles(c, zos);
+						}
+					}
+				} else {
+					String zipEntryName = Algorithms.isEmpty(getSubtype().getSubtypeFolder())
+							? f.getName()
+							: f.getPath().substring(f.getPath().indexOf(getSubtype().getSubtypeFolder()) - 1);
+					setInputStream(new FileInputStream(f));
+					super.writeEntry(zipEntryName, zos);
+				}
+			}
+		};
 	}
 }
