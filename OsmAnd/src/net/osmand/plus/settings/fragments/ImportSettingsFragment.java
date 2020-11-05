@@ -33,6 +33,7 @@ import net.osmand.PlatformUtil;
 import net.osmand.map.ITileSource;
 import net.osmand.map.TileSourceManager.TileSourceTemplate;
 import net.osmand.plus.AppInitializer;
+import net.osmand.plus.FavouritesDbHelper.FavoriteGroup;
 import net.osmand.plus.OsmandApplication;
 import net.osmand.plus.R;
 import net.osmand.plus.SQLiteTileSource;
@@ -46,6 +47,8 @@ import net.osmand.plus.poi.PoiUIFilter;
 import net.osmand.plus.quickaction.QuickAction;
 import net.osmand.plus.settings.backend.ApplicationMode.ApplicationModeBean;
 import net.osmand.plus.settings.backend.ExportSettingsType;
+import net.osmand.plus.settings.backend.backup.FavoritesSettingsItem;
+import net.osmand.plus.settings.backend.backup.GlobalSettingsItem;
 import net.osmand.plus.settings.backend.backup.OsmEditsSettingsItem;
 import net.osmand.plus.settings.backend.backup.OsmNotesSettingsItem;
 import net.osmand.plus.settings.backend.backup.SettingsHelper;
@@ -71,8 +74,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class ImportSettingsFragment extends BaseOsmAndFragment
-		implements View.OnClickListener {
+public class ImportSettingsFragment extends BaseOsmAndFragment {
 
 	public static final String TAG = ImportSettingsFragment.class.getSimpleName();
 	public static final Log LOG = PlatformUtil.getLog(ImportSettingsFragment.class.getSimpleName());
@@ -135,12 +137,28 @@ public class ImportSettingsFragment extends BaseOsmAndFragment
 		progressBar = root.findViewById(R.id.progress_bar);
 		setupToolbar(toolbar);
 		ViewCompat.setNestedScrollingEnabled(expandableList, true);
-		View header = inflater.inflate(R.layout.list_item_description_header, null);
+		View header = inflater.inflate(R.layout.list_item_description_header, container, false);
 		description = header.findViewById(R.id.description);
 		description.setText(R.string.select_data_to_import);
 		expandableList.addHeaderView(header);
-		continueBtn.setOnClickListener(this);
-		selectBtn.setOnClickListener(this);
+		continueBtn.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				if (adapter.getData().isEmpty()) {
+					app.showShortToastMessage(getString(R.string.shared_string_nothing_selected));
+				} else {
+					importItems();
+				}
+			}
+		});
+		selectBtn.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				allSelected = !allSelected;
+				selectBtn.setText(allSelected ? R.string.shared_string_deselect_all : R.string.shared_string_select_all);
+				adapter.selectAll(allSelected);
+			}
+		});
 		if (Build.VERSION.SDK_INT >= 21) {
 			AndroidUtils.addStatusBarPadding21v(app, root);
 		}
@@ -222,26 +240,6 @@ public class ImportSettingsFragment extends BaseOsmAndFragment
 		}
 	}
 
-	@Override
-	public void onClick(View view) {
-		switch (view.getId()) {
-			case R.id.select_button: {
-				allSelected = !allSelected;
-				selectBtn.setText(allSelected ? R.string.shared_string_deselect_all : R.string.shared_string_select_all);
-				adapter.selectAll(allSelected);
-				break;
-			}
-			case R.id.continue_button: {
-				if (adapter.getData().isEmpty()) {
-					app.showShortToastMessage(getString(R.string.shared_string_nothing_selected));
-				} else {
-					importItems();
-				}
-				break;
-			}
-		}
-	}
-
 	private void updateUi(int toolbarTitleRes, int descriptionRes) {
 		if (file != null) {
 			String fileName = file.getName();
@@ -265,15 +263,15 @@ public class ImportSettingsFragment extends BaseOsmAndFragment
 		}
 	}
 
-	private SettingsHelper.SettingsImportListener getImportListener() {
+	public SettingsHelper.SettingsImportListener getImportListener() {
 		return new SettingsHelper.SettingsImportListener() {
 			@Override
 			public void onSettingsImportFinished(boolean succeed, @NonNull List<SettingsItem> items) {
-				FragmentManager fm = getFragmentManager();
 				if (succeed) {
 					app.getRendererRegistry().updateExternalRenderers();
 					AppInitializer.loadRoutingFiles(app, null);
 					reloadIndexes(items);
+					FragmentManager fm = getFragmentManager();
 					if (fm != null && file != null) {
 						ImportCompleteFragment.showInstance(fm, items, file.getName());
 					}
@@ -348,7 +346,7 @@ public class ImportSettingsFragment extends BaseOsmAndFragment
 				}
 				settingsHelper.importSettings(file, items, "", 1, getImportListener());
 			} else if (fm != null && !isStateSaved()) {
-				ImportDuplicatesFragment.showInstance(fm, duplicates, items, file);
+				ImportDuplicatesFragment.showInstance(fm, duplicates, items, file, this);
 			}
 		}
 	}
@@ -437,6 +435,7 @@ public class ImportSettingsFragment extends BaseOsmAndFragment
 		List<AvoidRoadInfo> avoidRoads = new ArrayList<>();
 		List<OsmNotesPoint> osmNotesPointList = new ArrayList<>();
 		List<OpenstreetmapPoint> osmEditsPointList = new ArrayList<>();
+		List<FavoriteGroup> favoriteGroups = new ArrayList<>();
 		for (Object object : data) {
 			if (object instanceof ApplicationModeBean) {
 				appModeBeans.add((ApplicationModeBean) object);
@@ -456,6 +455,10 @@ public class ImportSettingsFragment extends BaseOsmAndFragment
 				osmNotesPointList.add((OsmNotesPoint) object);
 			} else if (object instanceof OpenstreetmapPoint) {
 				osmEditsPointList.add((OpenstreetmapPoint) object);
+			} else if (object instanceof FavoriteGroup) {
+				favoriteGroups.add((FavoriteGroup) object);
+			} else if (object instanceof GlobalSettingsItem) {
+				settingsItems.add((GlobalSettingsItem) object);
 			}
 		}
 		if (!appModeBeans.isEmpty()) {
@@ -482,6 +485,10 @@ public class ImportSettingsFragment extends BaseOsmAndFragment
 		if (!osmEditsPointList.isEmpty()) {
 			OsmEditsSettingsItem baseItem = getBaseItem(SettingsItemType.OSM_EDITS, OsmEditsSettingsItem.class);
 			settingsItems.add(new OsmEditsSettingsItem(app, baseItem, osmEditsPointList));
+		}
+		if (!favoriteGroups.isEmpty()) {
+			FavoritesSettingsItem baseItem = getBaseItem(SettingsItemType.FAVOURITES, FavoritesSettingsItem.class);
+			settingsItems.add(new FavoritesSettingsItem(app, baseItem, favoriteGroups));
 		}
 		return settingsItems;
 	}

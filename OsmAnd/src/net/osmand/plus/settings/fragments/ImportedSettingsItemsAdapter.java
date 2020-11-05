@@ -120,7 +120,27 @@ public class ImportedSettingsItemsAdapter extends
 				break;
 			case OSM_EDITS:
 				holder.icon.setImageDrawable(uiUtils.getIcon(R.drawable.ic_action_info_dark, activeColorRes));
-				holder.title.setText(R.string.osm_edit_modified_poi);
+				holder.title.setText(R.string.osm_edits);
+				break;
+			case FAVORITES:
+				holder.icon.setImageDrawable(uiUtils.getIcon(R.drawable.ic_action_favorite, activeColorRes));
+				holder.title.setText(R.string.shared_string_favorites);
+				break;
+			case OFFLINE_MAPS:
+				holder.icon.setImageDrawable(uiUtils.getIcon(R.drawable.ic_map, activeColorRes));
+				holder.title.setText(R.string.shared_string_maps);
+				break;
+			case TTS_VOICE:
+				holder.icon.setImageDrawable(uiUtils.getIcon(R.drawable.ic_action_volume_up, activeColorRes));
+				holder.title.setText(R.string.local_indexes_cat_tts);
+				break;
+			case VOICE:
+				holder.icon.setImageDrawable(uiUtils.getIcon(R.drawable.ic_action_volume_up, activeColorRes));
+				holder.title.setText(R.string.local_indexes_cat_voice);
+				break;
+			case GLOBAL:
+				holder.icon.setImageDrawable(uiUtils.getIcon(R.drawable.ic_action_settings, activeColorRes));
+				holder.title.setText(R.string.general_settings_2);
 				break;
 		}
 	}
