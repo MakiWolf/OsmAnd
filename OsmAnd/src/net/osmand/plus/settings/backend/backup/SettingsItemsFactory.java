@@ -134,6 +134,15 @@ class SettingsItemsFactory {
 			case FAVOURITES:
 				item = new FavoritesSettingsItem(app, json);
 				break;
+			case ACTIVE_MARKERS:
+				item = new MarkersSettingsItem(app, json);
+				break;
+			case HISTORY_MARKERS:
+				item = new HistoryMarkersSettingsItem(app, json);
+				break;
+			case SEARCH_HISTORY:
+				item = new SearchHistorySettingsItem(app, json);
+				break;
 		}
 		return item;
 	}

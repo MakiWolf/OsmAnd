@@ -10,7 +10,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.activity.OnBackPressedCallback;
@@ -41,7 +40,7 @@ import net.osmand.plus.settings.backend.backup.SettingsItem;
 import java.util.List;
 
 import static net.osmand.aidlapi.OsmAndCustomizationConstants.DRAWER_SETTINGS_ID;
-import static net.osmand.plus.settings.fragments.ImportSettingsFragment.IMPORT_SETTINGS_TAG;
+import static net.osmand.plus.settings.fragments.BaseSettingsListFragment.SETTINGS_LIST_TAG;
 
 public class ImportCompleteFragment extends BaseOsmAndFragment {
 	public static final String TAG = ImportCompleteFragment.class.getSimpleName();
@@ -59,7 +58,7 @@ public class ImportCompleteFragment extends BaseOsmAndFragment {
 		fragment.setRetainInstance(true);
 		fm.beginTransaction()
 				.replace(R.id.fragmentContainer, fragment, TAG)
-				.addToBackStack(IMPORT_SETTINGS_TAG)
+				.addToBackStack(SETTINGS_LIST_TAG)
 				.commitAllowingStateLoss();
 	}
 
@@ -84,7 +83,7 @@ public class ImportCompleteFragment extends BaseOsmAndFragment {
 		View root = inflater.inflate(R.layout.fragment_import_complete, container, false);
 		TextView description = root.findViewById(R.id.description);
 		TextView btnClose = root.findViewById(R.id.button_close);
-		final LinearLayout buttonContainer = root.findViewById(R.id.button_container);
+		final ViewGroup buttonContainer = root.findViewById(R.id.button_container);
 		recyclerView = root.findViewById(R.id.list);
 		description.setText(UiUtilities.createSpannableString(
 				String.format(getString(R.string.import_complete_description), fileName),
@@ -138,7 +137,7 @@ public class ImportCompleteFragment extends BaseOsmAndFragment {
 	public void dismissFragment() {
 		FragmentManager fm = getFragmentManager();
 		if (fm != null && !fm.isStateSaved()) {
-			fm.popBackStack(IMPORT_SETTINGS_TAG, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+			fm.popBackStack(SETTINGS_LIST_TAG, FragmentManager.POP_BACK_STACK_INCLUSIVE);
 		}
 	}
 
@@ -204,6 +203,18 @@ public class ImportCompleteFragment extends BaseOsmAndFragment {
 				favoritesActivity.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
 				app.getSettings().FAVORITES_TAB.set(FavoritesActivity.FAV_TAB);
 				startActivity(favoritesActivity);
+				break;
+			case SEARCH_HISTORY:
+				if (activity instanceof MapActivity) {
+					QuickSearchDialogFragment.showInstance(
+							(MapActivity) activity,
+							"",
+							null,
+							QuickSearchDialogFragment.QuickSearchType.REGULAR,
+							QuickSearchDialogFragment.QuickSearchTab.HISTORY,
+							null
+					);
+				}
 				break;
 			default:
 				break;

@@ -735,6 +735,11 @@ public class ProfileAppearanceFragment extends BaseSettingsFragment {
 						app.showToastMessage(R.string.profile_backup_failed);
 					}
 				}
+
+				@Override
+				public void onSettingsExportProgressUpdate(int value) {
+
+				}
 			};
 		}
 		return exportListener;
@@ -892,7 +897,7 @@ public class ProfileAppearanceFragment extends BaseSettingsFragment {
 	}
 	
 	private boolean nameIsEmpty() {
-		return changedProfile.name.trim().equals("");
+		return changedProfile.name.trim().isEmpty();
 	}
 	
 	private void disableSaveButtonWithErrorMessage(String errorMessage) {

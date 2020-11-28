@@ -269,7 +269,7 @@
     <string name="finished_task">Concluído</string>
     <string name="use_online_routing_descr">Utilize a Internet para calcular uma rota.</string>
     <string name="use_online_routing">Utilizar navegação online</string>
-    <string name="user_password">A sua palavra-passe no OSM</string>
+    <string name="user_password">Palavra-passe</string>
     <string name="osm_settings_descr">Especifique as configurações de OpenStreetMap.org (OSM) necessárias para envios ao OSM.</string>
     <string name="data_settings_descr">Especifique o idioma, descarregar/enviar dados.</string>
     <string name="data_settings">Dados</string>
@@ -485,7 +485,7 @@
     <string name="use_fluorescent_overlays">Sobreposições Fluorescentes</string>
     <string name="use_fluorescent_overlays_descr">Usar cores fluorescentes para mostrar trajetos e rotas.</string>
     <string name="offline_edition">Edição offline</string>
-    <string name="offline_edition_descr">Usar sempre a edição offline.</string>
+    <string name="offline_edition_descr">Se a edição offline estiver ativada, as alterações serão primeiro gravadas localmente e enviadas por pedido, caso contrário, as alterações serão enviadas imediatamente.</string>
     <string name="update_poi_does_not_change_indexes">As alterações de POI dentro da app não afetam os ficheiros de mapas descarregados; essas alterações são guardadas num ficheiro separado no seu aparelho.</string>
     <string name="local_openstreetmap_uploading">A enviar…</string>
     <string name="local_openstreetmap_were_uploaded">{0} POI/anotações enviados</string>
@@ -3446,7 +3446,7 @@
     <string name="checking_for_duplicate_description">OsmAnd verifica %1$s para duplicatas com itens existentes na app. 
 \n 
 \nPode demorar algum tempo.</string>
-    <string name="shared_string_importing">Importando</string>
+    <string name="shared_string_importing">A importar</string>
     <string name="importing_from">Importando dados de %1$s</string>
     <string name="clear_recorded_data_warning">Tem certeza de que deseja limpar os dados gravados\?</string>
     <string name="profile_backup_failed">Não foi possível fazer o backup do perfil.</string>
@@ -3468,8 +3468,8 @@
     <string name="shared_string_profiles">Perfis</string>
     <string name="shared_string_quick_actions">Ações rápidas</string>
     <string name="shared_string_nothing_selected">Nada selecionado</string>
-    <string name="shared_string_poi_types">Tipos de POI</string>
-    <string name="shared_string_preparing">Preparando</string>
+    <string name="shared_string_poi_types">Tipos de PDI</string>
+    <string name="shared_string_preparing">A preparar</string>
     <string name="recalc_angle_dialog_title">Ângulo mínimo entre minha localização e rota</string>
     <string name="recalc_angle_dialog_descr">Segmento reto adicional entre minha localização e a rota calculada será exibida até que a rota seja recalculada</string>
     <string name="shared_string_angle">Ângulo</string>
@@ -3566,9 +3566,9 @@
     <string name="logcat_buffer_descr">Verifique e compartilhe registos detalhados da app</string>
     <string name="select_map_icon_descr">Ícone mostrado em repouso.</string>
     <string name="select_nav_icon_descr">Ícone mostrado ao navegar ou mover.</string>
-    <string name="osm_edits_view_descr">Pode ver todos os erros de OSM do editor carregado em %1$s. Os pontos enviados não são exibidos no OsmAnd.</string>
+    <string name="osm_edits_view_descr">Pode ver todas as suas edições ainda não enviadas ou bugs OSM em %1$s. Os pontos enviados não aparecem no OsmAnd.</string>
     <string name="osm_editing">Edição OSM</string>
-    <string name="plugin_global_prefs_info">Essas configurações aplicam-se a todos os perfis.</string>
+    <string name="plugin_global_prefs_info">Estas configurações de extensão são globais e aplicam-se a todos os perfis</string>
     <string name="login_and_pass">Utilizador e palavra-passe</string>
     <string name="accessibility_announce">Anunciar</string>
     <string name="route_recalculation">Recálculo da rota</string>
@@ -3949,4 +3949,56 @@
     <string name="icon_group_sport">Desporto</string>
     <string name="icon_group_emergency">Emergência</string>
     <string name="icon_group_travel">Viagem</string>
+    <string name="message_you_need_add_two_points_to_show_graphs">Precisa de adicionar pelo menos dois pontos</string>
+    <string name="manage_subscription">Gerir a assinatura</string>
+    <string name="subscription_payment_issue_title">Há um problema com a sua assinatura. Clique no botão para ir às definições de assinatura do Google Play para corrigir o seu método de pagamento.</string>
+    <string name="subscription_expired_title">A assinatura do OsmAnd Live expirou</string>
+    <string name="subscription_paused_title">A assinatura do OsmAnd Live foi pausada</string>
+    <string name="subscription_on_hold_title">A assinatura do OsmAnd Live está em espera</string>
+    <string name="open_street_map_login_mode">Precisa fazer login para enviar alterações novas ou modificadas.
+\n
+\nPode entrar a usar o método seguro OAuth ou usar o seu nome de utilizador e a sua palavra-passe.</string>
+    <string name="login_open_street_map">Fazer login ao OpenStreetMap</string>
+    <string name="login_open_street_map_org">Entrar com OpenStreetMap.org</string>
+    <string name="sign_in_with_open_street_map">Entrar com OpenStreetMap</string>
+    <string name="use_login_password">Usar nome do utilizador e palavra-passe</string>
+    <string name="login_account">Conta</string>
+    <string name="user_login">Entrar</string>
+    <string name="markers_history">Histórico de marcadores</string>
+    <string name="send_files_to_openstreetmap">Enviar ficherio de GPX ao OpenStreetMap</string>
+    <string name="enter_text_separated">Insira etiquetas separadas por vírgula.</string>
+    <string name="gpx_upload_public_visibility_descr">Público significa que o rastreamento será mostrado publicamente nos Seus traços de GPS e em listas públicas de rastreamento de GPS. Os dados servidos através da API não fazem referência à sua página de rastreamento. As marcas temporais dos pontos de rastreamento não estão disponíveis através da API pública do GPS e os pontos não estão ordenados cronologicamente. No entanto, outros utilizadores ainda são capazes de descarregar o rastreamento bruto da lista pública de rastreamento e de quaisquer carimbos de tempo contidos nela.</string>
+    <string name="gpx_upload_private_visibility_descr">Privado significa que o rastreamento não aparecerá em nenhuma listagem pública, mas os pontos de rastreamento dele ainda estarão disponíveis através da API pública do GPS sem carimbos de tempo, mas não serão ordenados cronologicamente.</string>
+    <string name="gpx_upload_identifiable_visibility_descr">Identificável significa que o rastreamento será mostrado publicamente nos Seus traços de GPS e em listas públicas de rastreamento de GPS, ou seja, outros utilizadores serão capazes de descarregar o rastreamento bruto e associá-lo ao seu nome de utilizador. Os dados servidos através da API dos pontos de rastreamento referenciarão à sua página de rastreamento original. As marcas de tempo dos pontos de rastreamento estão disponíveis através da API pública do GPS.</string>
+    <string name="gpx_upload_trackable_visibility_descr">\"Rastreável\" significa que o rastreamento não aparece em nenhuma listagem pública, mas pontos de rastreamento processados com carimbos de tempo a partir dele (que não podem ser associados diretamente a si) fazem através de descarregadas da API pública do GPS.</string>
+    <string name="osm_edit_close_note">Fechar nota do OSM</string>
+    <string name="osm_edit_comment_note">Comentário de nota do OSM</string>
+    <string name="osm_login_descr">Pode fazer login pelo método seguro OAuth ou use o seu nome de utilizador e a palavra-passe.</string>
+    <string name="shared_string_add_photo">Adicionar fotos</string>
+    <string name="register_on_openplacereviews">Cadastre-se em
+\nOpenPlaceReviews.org</string>
+    <string name="register_on_openplacereviews_desc">As fotos são fornecidas pelo projeto de dados abertos OpenPlaceReviews.org. Para enviar as suas fotos precisa cadastrar-se no site.</string>
+    <string name="register_opr_create_new_account">Criar uma conta</string>
+    <string name="register_opr_have_account">Já tenho uma conta</string>
+    <string name="shared_string_search_history">Histórico de pesquisa</string>
+    <string name="app_mode_kayak">Caiaque</string>
+    <string name="app_mode_motorboat">Barco a motor</string>
+    <string name="shared_string_resources">Recursos</string>
+    <string name="approximate_file_size">Tamanho aproximado do ficheiro</string>
+    <string name="select_data_to_export">Selecione os dados a serem exportados para o ficheiro.</string>
+    <string name="file_size_needed_for_import">Necessário para a importação</string>
+    <string name="export_not_enough_space_descr">O seu aparelho só tem %1$s livre. Por favor, libere algum espaço ou desmarque alguns itens para exportar.</string>
+    <string name="export_not_enough_space">Não há espaço suficiente</string>
+    <string name="add_to_mapillary">Adicionar ao Mapillary</string>
+    <string name="add_to_opr">Adicionar ao OpenPlaceReviews</string>
+    <string name="add_photos_descr">OsmAnd mostra fotos de várias fontes:
+\nOpenPlaceReviews - fotos de POI;
+\nMapillary - imagens ao nível da rua;
+\nWeb / Wikimedia - fotos de POI especificadas nos dados do OpenStreetMap.</string>
+    <string name="select_groups_for_import">Seleccionar os grupos que serão importados.</string>
+    <string name="select_items_for_import">Seleccionar os objectos que serão importados.</string>
+    <string name="use_dev_url">Utilizar dev.openstreetmap.org</string>
+    <string name="cannot_upload_image">Não é possível enviar a imagem, por favor, tente novamente mais tarde</string>
+    <string name="select_picture">Selecione a imagem</string>
+    <string name="use_dev_url_descr">Mude para usar dev.openstreetmap.org ao invés de openstreetmap.org para testar enviar uma OSM Nota / POI / GPX.</string>
 </resources>

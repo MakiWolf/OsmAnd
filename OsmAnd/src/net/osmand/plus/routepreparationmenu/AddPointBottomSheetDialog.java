@@ -27,8 +27,8 @@ import net.osmand.data.FavouritePoint;
 import net.osmand.data.LatLon;
 import net.osmand.data.PointDescription;
 import net.osmand.plus.FavouritesDbHelper;
-import net.osmand.plus.MapMarkersHelper;
-import net.osmand.plus.MapMarkersHelper.MapMarker;
+import net.osmand.plus.mapmarkers.MapMarkersHelper;
+import net.osmand.plus.mapmarkers.MapMarker;
 import net.osmand.plus.OsmAndLocationProvider;
 import net.osmand.plus.OsmandApplication;
 import net.osmand.plus.R;
@@ -651,7 +651,7 @@ public class AddPointBottomSheetDialog extends MenuBottomSheetDialogFragment {
 									((FavouritePoint) item).getSpecialPointType().getIconId(app), iconColor));
 							favoriteViewHolder.description.setText(point.getDescription());
 						} else {
-							if (point.getCategory().equals("")) {
+							if (point.getCategory().isEmpty()) {
 								favoriteViewHolder.description.setText(R.string.shared_string_favorites);
 							} else {
 								favoriteViewHolder.description.setText(point.getCategory());

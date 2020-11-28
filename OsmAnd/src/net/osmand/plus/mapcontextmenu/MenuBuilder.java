@@ -6,12 +6,16 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.ColorStateList;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.TextUtils;
@@ -25,26 +29,21 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.view.ContextThemeWrapper;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.drawable.DrawableCompat;
-
 import net.osmand.AndroidUtils;
-import net.osmand.binary.BinaryMapIndexReader;
+import net.osmand.PlatformUtil;
 import net.osmand.data.Amenity;
 import net.osmand.data.LatLon;
 import net.osmand.data.PointDescription;
 import net.osmand.data.QuadRect;
-import net.osmand.osm.PoiCategory;
-import net.osmand.plus.OsmAndFormatter;
-import net.osmand.plus.OsmandApplication;
-import net.osmand.plus.OsmandPlugin;
-import net.osmand.plus.R;
-import net.osmand.plus.UiUtilities;
+import net.osmand.osm.io.NetworkUtils;
+import net.osmand.plus.*;
+import net.osmand.plus.activities.ActivityResultListener;
 import net.osmand.plus.activities.MapActivity;
 import net.osmand.plus.helpers.FontCache;
 import net.osmand.plus.mapcontextmenu.builders.cards.AbstractCard;
@@ -53,6 +52,10 @@ import net.osmand.plus.mapcontextmenu.builders.cards.ImageCard;
 import net.osmand.plus.mapcontextmenu.builders.cards.ImageCard.GetImageCardsTask;
 import net.osmand.plus.mapcontextmenu.builders.cards.NoImagesCard;
 import net.osmand.plus.mapcontextmenu.controllers.TransportStopController;
+import net.osmand.plus.openplacereviews.AddPhotosBottomSheetDialogFragment;
+import net.osmand.plus.openplacereviews.OPRWebviewActivity;
+import net.osmand.plus.openplacereviews.OprStartFragment;
+import net.osmand.plus.osmedit.opr.OpenDBAPI;
 import net.osmand.plus.poi.PoiUIFilter;
 import net.osmand.plus.render.RenderingIcons;
 import net.osmand.plus.transport.TransportStopRoute;
@@ -62,22 +65,24 @@ import net.osmand.plus.widgets.TextViewEx;
 import net.osmand.plus.widgets.tools.ClickableSpanTouchListener;
 import net.osmand.util.Algorithms;
 import net.osmand.util.MapUtils;
+import org.apache.commons.logging.Log;
+import org.openplacereviews.opendb.util.exception.FailedVerificationException;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.util.*;
 
 import static net.osmand.plus.mapcontextmenu.builders.cards.ImageCard.GetImageCardsTask.GetImageCardsListener;
 
 public class MenuBuilder {
 
+	private static final int PICK_IMAGE = 1231;
+	private static final Log LOG = PlatformUtil.getLog(MenuBuilder.class);
 	public static final float SHADOW_HEIGHT_TOP_DP = 17f;
 	public static final int TITLE_LIMIT = 60;
-	protected static final String[] arrowChars = new String[]{"=>"," - "};
+	protected static final String[] arrowChars = new String[] {"=>", " - "};
 
 	protected MapActivity mapActivity;
 	protected MapContextMenu mapContextMenu;
@@ -103,6 +108,44 @@ public class MenuBuilder {
 	private String preferredMapLang;
 	private String preferredMapAppLang;
 	private boolean transliterateNames;
+	private View view;
+	private View photoButton;
+
+	private final OpenDBAPI openDBAPI = new OpenDBAPI();
+	private String[] placeId = new String[0];
+	private GetImageCardsListener imageCardListener = new GetImageCardsListener() {
+		@Override
+		public void onPostProcess(List<ImageCard> cardList) {
+			processOnlinePhotosCards(cardList);
+		}
+
+		@Override
+		public void onPlaceIdAcquired(String[] placeId) {
+			MenuBuilder.this.placeId = placeId;
+			if (placeId.length < 2) {
+				app.runInUIThread(new Runnable() {
+					@Override
+					public void run() {
+						photoButton.setVisibility(View.GONE);
+					}
+				});
+			}
+		}
+
+		@Override
+		public void onFinish(List<ImageCard> cardList) {
+			if (!isHidden()) {
+				List<AbstractCard> cards = new ArrayList<AbstractCard>(cardList);
+				if (cardList.size() == 0) {
+					cards.add(new NoImagesCard(mapActivity));
+				}
+				if (onlinePhotoCardsRow != null) {
+					onlinePhotoCardsRow.setCards(cards);
+				}
+				onlinePhotoCards = cards;
+			}
+		}
+	};
 
 	public interface CollapseExpandListener {
 		void onCollapseExpand(boolean collapsed);
@@ -195,6 +238,7 @@ public class MenuBuilder {
 	}
 
 	public void build(View view) {
+		this.view = view;
 		firstRow = true;
 		hidden = false;
 		buildTopInternal(view);
@@ -254,7 +298,7 @@ public class MenuBuilder {
 	protected boolean needBuildPlainMenuItems() {
 		return true;
 	}
-	
+
 	protected boolean needBuildCoordinatesRow() {
 		return true;
 	}
@@ -282,7 +326,7 @@ public class MenuBuilder {
 
 	protected void buildNearestWikiRow(View view) {
 		if (processNearestWiki() && nearestWiki.size() > 0) {
-			buildRow(view, R.drawable.ic_action_wikipedia, null, app.getString(R.string.wiki_around) + " (" + nearestWiki.size()+")", 0,
+			buildRow(view, R.drawable.ic_action_wikipedia, null, app.getString(R.string.wiki_around) + " (" + nearestWiki.size() + ")", 0,
 					true, getCollapsableWikiView(view.getContext(), true),
 					false, 0, false, null, false);
 		}
@@ -296,7 +340,14 @@ public class MenuBuilder {
 		boolean needUpdateOnly = onlinePhotoCardsRow != null && onlinePhotoCardsRow.getMenuBuilder() == this;
 		onlinePhotoCardsRow = new CardsRowBuilder(this, view, false);
 		onlinePhotoCardsRow.build();
-		CollapsableView collapsableView = new CollapsableView(onlinePhotoCardsRow.getContentView(), this,
+		LinearLayout parent = new LinearLayout(view.getContext());
+		parent.setLayoutParams(
+				new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,
+						LinearLayout.LayoutParams.WRAP_CONTENT));
+		parent.setOrientation(LinearLayout.VERTICAL);
+		parent.addView(onlinePhotoCardsRow.getContentView());
+		parent.addView(createAddPhotoButton(view.getContext()));
+		CollapsableView collapsableView = new CollapsableView(parent, this,
 				app.getSettings().ONLINE_PHOTOS_ROW_COLLAPSED);
 		collapsableView.setCollapseExpandListener(new CollapseExpandListener() {
 			@Override
@@ -316,43 +367,185 @@ public class MenuBuilder {
 		}
 	}
 
+	private View createAddPhotoButton(Context ctx) {
+		View view = UiUtilities.getInflater(ctx, !light).inflate(R.layout.dialog_button_with_icon, null);
+		int dp6 = ctx.getResources().getDimensionPixelSize(R.dimen.bottom_sheet_title_padding_bottom);
+		View button = view.findViewById(R.id.button);
+		UiUtilities.setupDialogButton(!light, button, UiUtilities.DialogButtonType.STROKED,
+				ctx.getString(R.string.shared_string_add_photo), R.drawable.ic_sample);
+		TextView textView = view.findViewById(R.id.button_text);
+		textView.setCompoundDrawablePadding(dp6);
+		button.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				if (false) {
+					AddPhotosBottomSheetDialogFragment.showInstance(mapActivity.getSupportFragmentManager());
+				} else {
+					registerResultListener(view);
+					final String baseUrl = OPRWebviewActivity.getBaseUrl(app);
+					final String name = OPRWebviewActivity.getUsernameFromCookie(app);
+					final String privateKey = OPRWebviewActivity.getPrivateKeyFromCookie(app);
+					if (privateKey == null || privateKey.isEmpty()) {
+						OprStartFragment.showInstance(mapActivity.getSupportFragmentManager());
+						return;
+					}
+					new Thread(new Runnable() {
+						@Override
+						public void run() {
+							if (openDBAPI.checkPrivateKeyValid(baseUrl, name, privateKey)) {
+								app.runInUIThread(new Runnable() {
+									@Override
+									public void run() {
+										Intent intent = new Intent();
+										intent.setType("image/*");
+										intent.setAction(Intent.ACTION_GET_CONTENT);
+										mapActivity.startActivityForResult(Intent.createChooser(intent,
+												mapActivity.getString(R.string.select_picture)), PICK_IMAGE);
+									}
+								});
+							} else {
+								OprStartFragment.showInstance(mapActivity.getSupportFragmentManager());
+							}
+						}
+					}).start();
+				}
+			}
+		});
+		//TODO This feature is under development
+		if (!OsmandPlugin.isDevelopment()) {
+			view.setVisibility(View.GONE);
+		}
+		photoButton = view;
+		return view;
+	}
+
 	private void buildCoordinatesRow(View view) {
 		Map<Integer, String> locationData = PointDescription.getLocationData(mapActivity, latLon.getLatitude(), latLon.getLongitude(), true);
 		String title = locationData.get(PointDescription.LOCATION_LIST_HEADER);
 		locationData.remove(PointDescription.LOCATION_LIST_HEADER);
 		CollapsableView cv = getLocationCollapsableView(locationData);
 		buildRow(view, R.drawable.ic_action_get_my_location, null, title, 0, true, cv, false, 1,
-			false, null, false);
+				false, null, false);
 	}
-	
+
+	private void registerResultListener(final View view) {
+		mapActivity.registerActivityResultListener(new ActivityResultListener(PICK_IMAGE, new ActivityResultListener.
+				OnActivityResultListener() {
+			@Override
+			public void onResult(int resultCode, Intent resultData) {
+				if (resultData != null) {
+					handleSelectedImage(view, resultData.getData());
+				}
+			}
+		}));
+	}
+
+	private void handleSelectedImage(final View view, final Uri uri) {
+		Thread t = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				InputStream inputStream = null;
+				try {
+					inputStream = app.getContentResolver().openInputStream(uri);
+					if (inputStream != null) {
+						uploadImageToPlace(inputStream);
+					}
+				} catch (Exception e) {
+					LOG.error(e);
+					String str = app.getString(R.string.cannot_upload_image);
+					showToastMessage(str);
+				} finally {
+					Algorithms.closeStream(inputStream);
+				}
+			}
+		});
+		t.start();
+	}
+
+	private void uploadImageToPlace(InputStream image) {
+		InputStream serverData = new ByteArrayInputStream(compressImage(image));
+		final String baseUrl = OPRWebviewActivity.getBaseUrl(app);
+		String url = baseUrl + "api/ipfs/image";
+		String response = NetworkUtils.sendPostDataRequest(url, serverData);
+		if (response != null) {
+			int res = 0;
+			try {
+				StringBuilder error = new StringBuilder();
+				res = openDBAPI.uploadImage(
+						placeId,
+						baseUrl,
+						OPRWebviewActivity.getPrivateKeyFromCookie(app),
+						OPRWebviewActivity.getUsernameFromCookie(app),
+						response, error);
+				if (res != 200) {
+					showToastMessage(error.toString());
+				} else {
+					//ok, continue
+				}
+			} catch (FailedVerificationException e) {
+				LOG.error(e);
+				checkTokenAndShowScreen();
+			}
+			if (res != 200) {
+				//image was uploaded but not added to blockchain
+				checkTokenAndShowScreen();
+			} else {
+				String str = app.getString(R.string.successfully_uploaded_pattern, 1, 1);
+				showToastMessage(str);
+				//refresh the image
+				execute(new GetImageCardsTask(mapActivity, getLatLon(), getAdditionalCardParams(), imageCardListener));
+			}
+		} else {
+			checkTokenAndShowScreen();
+		}
+	}
+
+	private void showToastMessage(final String str) {
+		new Handler(Looper.getMainLooper()).post(new Runnable() {
+			@Override
+			public void run() {
+				Toast.makeText(mapActivity.getBaseContext(), str, Toast.LENGTH_LONG).show();
+			}
+		});
+	}
+
+	//This method runs on non main thread
+	private void checkTokenAndShowScreen() {
+		final String baseUrl = OPRWebviewActivity.getBaseUrl(app);
+		final String name = OPRWebviewActivity.getUsernameFromCookie(app);
+		final String privateKey = OPRWebviewActivity.getPrivateKeyFromCookie(app);
+		if (openDBAPI.checkPrivateKeyValid(baseUrl, name, privateKey)) {
+			String str = app.getString(R.string.cannot_upload_image);
+			showToastMessage(str);
+		} else {
+			app.runInUIThread(new Runnable() {
+				@Override
+				public void run() {
+					OprStartFragment.showInstance(mapActivity.getSupportFragmentManager());
+				}
+			});
+		}
+	}
+
+	private byte[] compressImage(InputStream image) {
+		BufferedInputStream bufferedInputStream = new BufferedInputStream(image);
+		Bitmap bmp = BitmapFactory.decodeStream(bufferedInputStream);
+		ByteArrayOutputStream os = new ByteArrayOutputStream();
+		bmp.compress(Bitmap.CompressFormat.PNG, 70, os);
+		return os.toByteArray();
+	}
+
 	private void startLoadingImages() {
 		if (onlinePhotoCardsRow == null) {
 			return;
 		}
+		startLoadingImagesTask();
+	}
+
+	private void startLoadingImagesTask() {
 		onlinePhotoCards = new ArrayList<>();
 		onlinePhotoCardsRow.setProgressCard();
-		execute(new GetImageCardsTask(mapActivity, getLatLon(), getAdditionalCardParams(),
-				new GetImageCardsListener() {
-					@Override
-					public void onPostProcess(List<ImageCard> cardList) {
-						processOnlinePhotosCards(cardList);
-					}
-
-					@Override
-					public void onFinish(List<ImageCard> cardList) {
-						if (!isHidden()) {
-							List<AbstractCard> cards = new ArrayList<>();
-							cards.addAll(cardList);
-							if (cardList.size() == 0) {
-								cards.add(new NoImagesCard(mapActivity));
-							}
-							if (onlinePhotoCardsRow != null) {
-								onlinePhotoCardsRow.setCards(cards);
-							}
-							onlinePhotoCards = cards;
-						}
-					}
-				}));
+		execute(new GetImageCardsTask(mapActivity, getLatLon(), getAdditionalCardParams(), imageCardListener));
 	}
 
 	protected Map<String, String> getAdditionalCardParams() {
@@ -379,7 +572,7 @@ public class MenuBuilder {
 		}
 	}
 
-	protected void buildDescription(View view){
+	protected void buildDescription(View view) {
 	}
 
 	protected void buildAfter(View view) {
@@ -395,8 +588,8 @@ public class MenuBuilder {
 	}
 
 	public View buildRow(View view, int iconId, String buttonText, String text, int textColor,
-							boolean collapsable, final CollapsableView collapsableView,
-							boolean needLinks, int textLinesLimit, boolean isUrl, OnClickListener onClickListener, boolean matchWidthDivider) {
+	                     boolean collapsable, final CollapsableView collapsableView,
+	                     boolean needLinks, int textLinesLimit, boolean isUrl, OnClickListener onClickListener, boolean matchWidthDivider) {
 		return buildRow(view, iconId == 0 ? null : getRowIcon(iconId), buttonText, text, textColor, null, collapsable, collapsableView,
 				needLinks, textLinesLimit, isUrl, onClickListener, matchWidthDivider);
 	}
@@ -480,7 +673,7 @@ public class MenuBuilder {
 			textPrefixView.setLayoutParams(llTextParams);
 			textPrefixView.setTypeface(FontCache.getRobotoRegular(view.getContext()));
 			textPrefixView.setTextSize(12);
-			textPrefixView.setTextColor(app.getResources().getColor(light ? R.color.text_color_secondary_light: R.color.text_color_secondary_dark));
+			textPrefixView.setTextColor(app.getResources().getColor(light ? R.color.text_color_secondary_light : R.color.text_color_secondary_dark));
 			textPrefixView.setMinLines(1);
 			textPrefixView.setMaxLines(1);
 			textPrefixView.setText(textPrefix);
@@ -526,7 +719,7 @@ public class MenuBuilder {
 			textViewSecondary.setLayoutParams(llTextSecondaryParams);
 			textViewSecondary.setTypeface(FontCache.getRobotoRegular(view.getContext()));
 			textViewSecondary.setTextSize(14);
-			textViewSecondary.setTextColor(app.getResources().getColor(light ? R.color.text_color_secondary_light: R.color.text_color_secondary_dark));
+			textViewSecondary.setTextColor(app.getResources().getColor(light ? R.color.text_color_secondary_light : R.color.text_color_secondary_dark));
 			textViewSecondary.setText(secondaryText);
 			llText.addView(textViewSecondary);
 		}
@@ -581,7 +774,7 @@ public class MenuBuilder {
 			}
 			if (collapsableView.getContentView().getParent() != null) {
 				((ViewGroup) collapsableView.getContentView().getParent())
-					.removeView(collapsableView.getContentView());
+						.removeView(collapsableView.getContentView());
 			}
 			baseView.addView(collapsableView.getContentView());
 		}
@@ -682,7 +875,7 @@ public class MenuBuilder {
 					ssb.append("UTM: ");
 				} else if (line.getKey() == OsmAndFormatter.MGRS_FORMAT) {
 					ssb.append("MGRS: ");
-				} else if (line.getKey() == OsmAndFormatter.OLC_FORMAT){
+				} else if (line.getKey() == OsmAndFormatter.OLC_FORMAT) {
 					ssb.append("OLC: ");
 				}
 				ssb.setSpan(new ForegroundColorSpan(app.getResources().getColor(R.color.text_color_secondary_light)), 0, 4, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
@@ -747,8 +940,8 @@ public class MenuBuilder {
 	}
 
 	public void addPlainMenuItem(int iconId, String text, boolean needLinks, boolean isUrl,
-								 boolean collapsable, CollapsableView collapsableView,
-								 OnClickListener onClickListener) {
+	                             boolean collapsable, CollapsableView collapsableView,
+	                             OnClickListener onClickListener) {
 		plainMenuItems.add(new PlainMenuItem(iconId, null, text, needLinks, isUrl, collapsable, collapsableView, onClickListener));
 	}
 
@@ -970,7 +1163,7 @@ public class MenuBuilder {
 		button.setTypeface(FontCache.getRobotoRegular(context));
 		int bg;
 		if (selected) {
-			bg = light ? R.drawable.context_menu_controller_bg_light_selected: R.drawable.context_menu_controller_bg_dark_selected;
+			bg = light ? R.drawable.context_menu_controller_bg_light_selected : R.drawable.context_menu_controller_bg_dark_selected;
 		} else if (showAll) {
 			bg = light ? R.drawable.context_menu_controller_bg_light_show_all : R.drawable.context_menu_controller_bg_dark_show_all;
 		} else {
@@ -1027,7 +1220,7 @@ public class MenuBuilder {
 
 	private List<Amenity> getAmenities(QuadRect rect, PoiUIFilter wikiPoiFilter) {
 		return wikiPoiFilter.searchAmenities(rect.top, rect.left,
-						rect.bottom, rect.right, -1, null);
+				rect.bottom, rect.right, -1, null);
 	}
 
 	@SuppressWarnings("unchecked")

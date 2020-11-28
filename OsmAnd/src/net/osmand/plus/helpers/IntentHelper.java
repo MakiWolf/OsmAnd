@@ -4,6 +4,8 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 
+import androidx.fragment.app.Fragment;
+
 import net.osmand.AndroidNetworkUtils;
 import net.osmand.CallbackWithObject;
 import net.osmand.IndexConstants;
@@ -11,7 +13,7 @@ import net.osmand.PlatformUtil;
 import net.osmand.data.LatLon;
 import net.osmand.data.PointDescription;
 import net.osmand.map.TileSourceManager;
-import net.osmand.plus.MapMarkersHelper;
+import net.osmand.plus.mapmarkers.MapMarkersGroup;
 import net.osmand.plus.OsmandApplication;
 import net.osmand.plus.R;
 import net.osmand.plus.activities.MapActivity;
@@ -19,7 +21,6 @@ import net.osmand.plus.activities.PluginsFragment;
 import net.osmand.plus.dashboard.DashboardOnMap.DashboardType;
 import net.osmand.plus.mapmarkers.MapMarkersDialogFragment;
 import net.osmand.plus.mapsource.EditMapSourceDialogFragment;
-import net.osmand.plus.osmedit.OsmEditingFragment;
 import net.osmand.plus.search.QuickSearchDialogFragment;
 import net.osmand.plus.settings.backend.ApplicationMode;
 import net.osmand.plus.settings.backend.OsmandSettings;
@@ -34,6 +35,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static net.osmand.plus.osmedit.oauth.OsmOAuthHelper.*;
 
 public class IntentHelper {
 
@@ -207,7 +210,7 @@ public class IntentHelper {
 			if (intent.hasExtra(MapMarkersDialogFragment.OPEN_MAP_MARKERS_GROUPS)) {
 				Bundle openMapMarkersGroupsExtra = intent.getBundleExtra(MapMarkersDialogFragment.OPEN_MAP_MARKERS_GROUPS);
 				if (openMapMarkersGroupsExtra != null) {
-					MapMarkersDialogFragment.showInstance(mapActivity, openMapMarkersGroupsExtra.getString(MapMarkersHelper.MapMarkersGroup.MARKERS_SYNC_GROUP_ID));
+					MapMarkersDialogFragment.showInstance(mapActivity, openMapMarkersGroupsExtra.getString(MapMarkersGroup.MARKERS_SYNC_GROUP_ID));
 				}
 				mapActivity.setIntent(null);
 			}
@@ -293,16 +296,27 @@ public class IntentHelper {
 		if (intent != null && intent.getData() != null) {
 			Uri uri = intent.getData();
 			if (uri.toString().startsWith("osmand-oauth")) {
-				OsmEditingFragment fragment = mapActivity.getOsmEditingFragment();
-				if (fragment != null) {
-					String oauthVerifier = uri.getQueryParameter("oauth_verifier");
-					fragment.authorize(oauthVerifier);
-					mapActivity.setIntent(null);
-					return true;
-				}
+				String oauthVerifier = uri.getQueryParameter("oauth_verifier");
+				app.getOsmOAuthHelper().addListener(getOnAuthorizeListener());
+				app.getOsmOAuthHelper().authorize(oauthVerifier);
+				mapActivity.setIntent(null);
+				return true;
 			}
 		}
 		return false;
+	}
+
+	private OsmAuthorizationListener getOnAuthorizeListener() {
+		return new OsmAuthorizationListener() {
+			@Override
+			public void authorizationCompleted() {
+				for (Fragment fragment : mapActivity.getSupportFragmentManager().getFragments()) {
+					if (fragment instanceof OsmAuthorizationListener) {
+						((OsmAuthorizationListener) fragment).authorizationCompleted();
+					}
+				}
+			}
+		};
 	}
 
 	private boolean handleSendText(Intent intent) {

@@ -41,8 +41,10 @@ import net.osmand.plus.helpers.WaypointHelper;
 import net.osmand.plus.inapp.InAppPurchaseHelperImpl;
 import net.osmand.plus.liveupdates.LiveUpdatesHelper;
 import net.osmand.plus.mapmarkers.MapMarkersDbHelper;
+import net.osmand.plus.mapmarkers.MapMarkersHelper;
 import net.osmand.plus.monitoring.LiveMonitoringHelper;
 import net.osmand.plus.monitoring.OsmandMonitoringPlugin;
+import net.osmand.plus.osmedit.oauth.OsmOAuthHelper;
 import net.osmand.plus.poi.PoiFiltersHelper;
 import net.osmand.plus.quickaction.QuickActionRegistry;
 import net.osmand.plus.render.MapRenderRepositories;
@@ -64,6 +66,8 @@ import net.osmand.plus.voice.JSTTSCommandPlayerImpl;
 import net.osmand.plus.voice.MediaCommandPlayerImpl;
 import net.osmand.plus.voice.TTSCommandPlayerImpl;
 import net.osmand.plus.wikivoyage.data.TravelDbHelper;
+import net.osmand.plus.wikivoyage.data.TravelHelper;
+import net.osmand.plus.wikivoyage.data.TravelObfHelper;
 import net.osmand.render.RenderingRulesStorage;
 import net.osmand.router.RoutingConfiguration;
 import net.osmand.util.Algorithms;
@@ -83,7 +87,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 
-import btools.routingapp.BRouterServiceConnection;
+import btools.routingapp.IBRouterService;
 
 import static net.osmand.plus.AppVersionUpgradeOnInit.LAST_APP_VERSION;
 import static net.osmand.plus.liveupdates.LiveUpdatesHelper.getPendingIntent;
@@ -421,13 +425,9 @@ public class AppInitializer implements IProgress {
 			osmandSettings.APPLICATION_MODE.set(osmandSettings.DEFAULT_APPLICATION_MODE.get());
 		}
 		startTime = System.currentTimeMillis();
-		try {
-			app.bRouterServiceConnection = startupInit(BRouterServiceConnection.connect(app), BRouterServiceConnection.class);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 		getLazyRoutingConfig();
 		app.applyTheme(app);
+		startupInit(app.reconnectToBRouter(), IBRouterService.class);
 		app.inAppPurchaseHelper = startupInit(new InAppPurchaseHelperImpl(app), InAppPurchaseHelperImpl.class);
 		app.poiTypes = startupInit(MapPoiTypes.getDefaultNoInit(), MapPoiTypes.class);
 		app.transportRoutingHelper = startupInit(new TransportRoutingHelper(app), TransportRoutingHelper.class);
@@ -457,16 +457,19 @@ public class AppInitializer implements IProgress {
 		app.mapMarkersDbHelper = startupInit(new MapMarkersDbHelper(app), MapMarkersDbHelper.class);
 		app.mapMarkersHelper = startupInit(new MapMarkersHelper(app), MapMarkersHelper.class);
 		app.searchUICore = startupInit(new QuickSearchHelper(app), QuickSearchHelper.class);
-		app.mapViewTrackingUtilities = startupInit(new MapViewTrackingUtilities(app), MapViewTrackingUtilities.class); 
-		app.travelDbHelper = new TravelDbHelper(app);
+		app.mapViewTrackingUtilities = startupInit(new MapViewTrackingUtilities(app), MapViewTrackingUtilities.class);
+
+		//TODO cleanup after Travel migration complete
+		app.travelHelper = TravelObfHelper.checkIfObfFileExists(app) ? new TravelObfHelper(app) : new TravelDbHelper(app);
 		if (app.getSettings().SELECTED_TRAVEL_BOOK.get() != null) {
-			app.travelDbHelper.initTravelBooks();
+			app.travelHelper.initTravelBooks();
 		}
-		app.travelDbHelper = startupInit(app.travelDbHelper, TravelDbHelper.class);
+		app.travelHelper = startupInit(app.travelHelper, TravelHelper.class);
+
 		app.lockHelper = startupInit(new LockHelper(app), LockHelper.class);
 		app.settingsHelper = startupInit(new SettingsHelper(app), SettingsHelper.class);
 		app.quickActionRegistry = startupInit(new QuickActionRegistry(app.getSettings()), QuickActionRegistry.class);
-
+		app.osmOAuthHelper = startupInit(new OsmOAuthHelper(app), OsmOAuthHelper.class);
 
 		initOpeningHoursParser();
 	}

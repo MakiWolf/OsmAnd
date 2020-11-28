@@ -133,12 +133,41 @@ public class SearchHistoryHelper {
 			model.markAsAccessed(System.currentTimeMillis());
 			helper.add(model);
 		}
+		updateEntriesList();
+	}
+
+	public void addItemsToHistory(List<HistoryEntry> entries) {
+		for (HistoryEntry model : entries) {
+			addItemToHistoryWithReplacement(model);
+		}
+		updateEntriesList();
+	}
+
+	public void updateEntriesList() {
+		HistoryItemDBHelper helper = checkLoadedEntries();
 		Collections.sort(loadedEntries, new HistoryEntryComparator());
-		if (loadedEntries.size() > HISTORY_LIMIT) {
+		while (loadedEntries.size() > HISTORY_LIMIT) {
 			if (helper.remove(loadedEntries.get(loadedEntries.size() - 1))) {
 				loadedEntries.remove(loadedEntries.size() - 1);
 			}
 		}
+	}
+
+	private void addItemToHistoryWithReplacement(HistoryEntry model) {
+		HistoryItemDBHelper helper = checkLoadedEntries();
+		PointDescription name = model.getName();
+		if (mp.containsKey(name)) {
+			HistoryEntry oldModel = mp.remove(name);
+			loadedEntries.remove(oldModel);
+			helper.remove(model);
+		}
+		loadedEntries.add(model);
+		mp.put(name, model);
+		helper.add(model);
+	}
+
+	public HistoryEntry getEntryByName(PointDescription pd) {
+		return mp != null && pd != null ? mp.get(pd) : null;
 	}
 
 	public static class HistoryEntry {
@@ -149,7 +178,7 @@ public class SearchHistoryHelper {
 		private int[] intervals = new int[0];
 		private double[] intervalValues = new double[0];
 
-		HistoryEntry(double lat, double lon, PointDescription name) {
+		public HistoryEntry(double lat, double lon, PointDescription name) {
 			this.lat = lat;
 			this.lon = lon;
 			this.name = name;
@@ -347,18 +376,16 @@ public class SearchHistoryHelper {
 			SQLiteConnection db = openConnection(false);
 			if (db != null) {
 				try {
-					removeQuery(e.getSerializedName(), db);
+					db.execSQL("DELETE FROM " + HISTORY_TABLE_NAME + " WHERE " +
+									HISTORY_COL_NAME + " = ? AND " +
+									HISTORY_COL_LAT + " = ? AND " + HISTORY_COL_LON + " = ?",
+							new Object[] {e.getSerializedName(), e.getLat(), e.getLon()});
 				} finally {
 					db.close();
 				}
 				return true;
 			}
 			return false;
-		}
-
-		private void removeQuery(String name, SQLiteConnection db) {
-			db.execSQL("DELETE FROM " + HISTORY_TABLE_NAME + " WHERE " + HISTORY_COL_NAME + " = ?",
-					new Object[]{name});
 		}
 
 		public boolean removeAll() {
@@ -382,9 +409,10 @@ public class SearchHistoryHelper {
 							"UPDATE " + HISTORY_TABLE_NAME + " SET " + HISTORY_COL_TIME + "= ? " +
 									", " + HISTORY_COL_FREQ_INTERVALS + " = ? " +
 									", " + HISTORY_COL_FREQ_VALUES + "= ? WHERE " +
-									HISTORY_COL_NAME + " = ?",
-							new Object[]{e.getLastAccessTime(), e.getIntervals(), e.getIntervalsValues(),
-									e.getSerializedName()});
+									HISTORY_COL_NAME + " = ? AND " +
+									HISTORY_COL_LAT + " = ? AND " + HISTORY_COL_LON + " = ?",
+							new Object[] {e.getLastAccessTime(), e.getIntervals(), e.getIntervalsValues(),
+									e.getSerializedName(), e.getLat(), e.getLon()});
 				} finally {
 					db.close();
 				}
@@ -427,12 +455,13 @@ public class SearchHistoryHelper {
 						boolean reinsert = false;
 						do {
 							String name = query.getString(0);
-							PointDescription p = PointDescription.deserializeFromString(name, new LatLon(query.getDouble(1), query.getDouble(2)));
+							double lat = query.getDouble(1);
+							double lon = query.getDouble(2);
+							PointDescription p = PointDescription.deserializeFromString(name, new LatLon(lat, lon));
 							if (context.getPoiTypes().isTypeForbidden(p.getName())){
 								query.moveToNext();
 							}
-							HistoryEntry e = new HistoryEntry(query.getDouble(1), query.getDouble(2),
-									p);
+							HistoryEntry e = new HistoryEntry(lat, lon, p);
 							long time = query.getLong(3);
 							e.setLastAccessTime(time);
 							e.setFrequency(query.getString(4), query.getString(5));

@@ -1,26 +1,21 @@
 package net.osmand.plus.osmedit;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
-import android.os.AsyncTask;
 import android.text.SpannableString;
 import android.text.TextUtils;
 import android.text.style.StyleSpan;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ArrayAdapter;
-import android.widget.EditText;
-import android.widget.Spinner;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
+import androidx.annotation.StringRes;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
 
 import net.osmand.AndroidUtils;
 import net.osmand.PlatformUtil;
@@ -35,16 +30,16 @@ import net.osmand.plus.ContextMenuItem;
 import net.osmand.plus.OsmandApplication;
 import net.osmand.plus.OsmandPlugin;
 import net.osmand.plus.R;
-import net.osmand.plus.activities.EnumAdapter;
-import net.osmand.plus.activities.EnumAdapter.IEnumWithResource;
 import net.osmand.plus.activities.MapActivity;
 import net.osmand.plus.activities.TabActivity;
 import net.osmand.plus.dashboard.DashboardOnMap.DashboardType;
 import net.osmand.plus.dashboard.tools.DashFragmentData;
+import net.osmand.plus.measurementtool.LoginBottomSheetFragment;
 import net.osmand.plus.myplaces.AvailableGPXFragment;
 import net.osmand.plus.myplaces.AvailableGPXFragment.GpxInfo;
 import net.osmand.plus.myplaces.FavoritesActivity;
 import net.osmand.plus.osmedit.OsmPoint.Action;
+import net.osmand.plus.osmedit.dialogs.SendGpxBottomSheetFragment;
 import net.osmand.plus.quickaction.QuickActionType;
 import net.osmand.plus.settings.backend.OsmandPreference;
 import net.osmand.plus.settings.backend.OsmandSettings;
@@ -229,7 +224,7 @@ public class OsmEditingPlugin extends OsmandPlugin {
 					editPoiDialogFragment.show(mapActivity.getSupportFragmentManager(),
 							EditPoiDialogFragment.TAG);
 				} else if (resId == R.string.context_menu_item_open_note) {
-					openOsmNote(mapActivity, latitude, longitude);
+					openOsmNote(mapActivity, latitude, longitude, "", false);
 				} else if (resId == R.string.context_menu_item_modify_note) {
 					modifyOsmNote(mapActivity, (OsmNotesPoint) selectedObj);
 				} else if (resId == R.string.poi_context_menu_modify) {
@@ -298,13 +293,6 @@ public class OsmEditingPlugin extends OsmandPlugin {
 					.setListener(listener)
 					.createItem());
 		}
-	}
-
-	public void openOsmNote(MapActivity mapActivity, double latitude, double longitude) {
-		if (osmBugsLayer == null) {
-            registerLayers(mapActivity);
-        }
-		osmBugsLayer.openBug(latitude, longitude, "");
 	}
 
 	public void openOsmNote(MapActivity mapActivity, double latitude, double longitude, String message, boolean autofill) {
@@ -395,15 +383,15 @@ public class OsmEditingPlugin extends OsmandPlugin {
 	}
 
 	@Override
-	public void contextMenuFragment(final Activity la, final Fragment fragment, final Object info, ContextMenuAdapter adapter) {
+	public void contextMenuFragment(final FragmentActivity activity, final Fragment fragment, final Object info, ContextMenuAdapter adapter) {
 		if (fragment instanceof AvailableGPXFragment) {
-			adapter.addItem(new ContextMenuItem.ItemBuilder().setTitleId(R.string.local_index_mi_upload_gpx, la)
+			adapter.addItem(new ContextMenuItem.ItemBuilder().setTitleId(R.string.local_index_mi_upload_gpx, activity)
 					.setIcon(R.drawable.ic_action_export)
 					.setListener(new ContextMenuAdapter.ItemClickListener() {
 
 						@Override
 						public boolean onContextMenuClick(ArrayAdapter<ContextMenuItem> adapter, int itemId, int pos, boolean isChecked, int[] viewCoordinates) {
-							sendGPXFiles(la, (AvailableGPXFragment) fragment, (GpxInfo) info);
+							sendGPXFiles(activity, (AvailableGPXFragment) fragment, (GpxInfo) info);
 							return true;
 						}
 					}).createItem());
@@ -411,7 +399,7 @@ public class OsmEditingPlugin extends OsmandPlugin {
 	}
 
 	@Override
-	public void optionsMenuFragment(final Activity activity, final Fragment fragment, ContextMenuAdapter optionsMenuAdapter) {
+	public void optionsMenuFragment(final FragmentActivity activity, final Fragment fragment, ContextMenuAdapter optionsMenuAdapter) {
 		if (fragment instanceof AvailableGPXFragment) {
 			final AvailableGPXFragment f = ((AvailableGPXFragment) fragment);
 			optionsMenuAdapter.addItem(new ContextMenuItem.ItemBuilder().setTitleId(R.string.local_index_mi_upload_gpx, activity)
@@ -427,7 +415,7 @@ public class OsmEditingPlugin extends OsmandPlugin {
 										public void onClick(DialogInterface dialog, int which) {
 											List<GpxInfo> selectedItems = f.getSelectedItems();
 											sendGPXFiles(activity, f,
-													selectedItems.toArray(new GpxInfo[selectedItems.size()]));
+													selectedItems.toArray(new GpxInfo[0]));
 										}
 									});
 							return true;
@@ -437,64 +425,48 @@ public class OsmEditingPlugin extends OsmandPlugin {
 		}
 	}
 
+	public enum UploadVisibility {
+		PUBLIC(R.string.gpxup_public, R.string.gpx_upload_public_visibility_descr),
+		IDENTIFIABLE(R.string.gpxup_identifiable, R.string.gpx_upload_identifiable_visibility_descr),
+		TRACKABLE(R.string.gpxup_trackable, R.string.gpx_upload_trackable_visibility_descr),
+		PRIVATE(R.string.gpxup_private, R.string.gpx_upload_private_visibility_descr);
 
-	public enum UploadVisibility implements IEnumWithResource {
-		Public(R.string.gpxup_public),
-		Identifiable(R.string.gpxup_identifiable),
-		Trackable(R.string.gpxup_trackable),
-		Private(R.string.gpxup_private);
-		private final int resourceId;
+		@StringRes
+		private final int titleId;
+		@StringRes
+		private final int descriptionId;
 
-		UploadVisibility(int resourceId) {
-			this.resourceId = resourceId;
+		UploadVisibility(int titleId, int descriptionId) {
+			this.titleId = titleId;
+			this.descriptionId = descriptionId;
 		}
 
 		public String asURLparam() {
 			return name().toLowerCase();
 		}
 
-		@Override
-		public int stringResource() {
-			return resourceId;
+		@StringRes
+		public int getTitleId() {
+			return titleId;
+		}
+
+		@StringRes
+		public int getDescriptionId() {
+			return descriptionId;
 		}
 	}
 
-	public boolean sendGPXFiles(final Activity la, AvailableGPXFragment f, final GpxInfo... info) {
+	public boolean sendGPXFiles(final FragmentActivity activity, AvailableGPXFragment fragment, final GpxInfo... info) {
 		String name = settings.USER_NAME.get();
 		String pwd = settings.USER_PASSWORD.get();
 		String authToken = settings.USER_ACCESS_TOKEN.get();
 		if ((Algorithms.isEmpty(name) || Algorithms.isEmpty(pwd)) && Algorithms.isEmpty(authToken)) {
-			Toast.makeText(la, R.string.validate_gpx_upload_name_pwd, Toast.LENGTH_LONG).show();
+			LoginBottomSheetFragment.showInstance(activity.getSupportFragmentManager(), fragment);
 			return false;
+		} else {
+			SendGpxBottomSheetFragment.showInstance(activity.getSupportFragmentManager(), fragment, info);
+			return true;
 		}
-		AlertDialog.Builder bldr = new AlertDialog.Builder(la);
-		LayoutInflater inflater = (LayoutInflater) la.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-		final View view = inflater.inflate(R.layout.send_gpx_osm, null);
-		final EditText descr = (EditText) view.findViewById(R.id.memory_size);
-		if (info.length > 0 && info[0].getFileName() != null) {
-			int dt = info[0].getFileName().indexOf('.');
-			descr.setText(info[0].getFileName().substring(0, dt));
-		}
-		final EditText tags = (EditText) view.findViewById(R.id.TagsText);
-		final Spinner visibility = ((Spinner) view.findViewById(R.id.Visibility));
-		EnumAdapter<UploadVisibility> adapter = new EnumAdapter<>(la, android.R.layout.simple_spinner_item, UploadVisibility.values());
-		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-		visibility.setAdapter(adapter);
-		visibility.setSelection(0);
-
-		bldr.setView(view);
-		bldr.setNegativeButton(R.string.shared_string_no, null);
-		bldr.setPositiveButton(R.string.shared_string_yes, new DialogInterface.OnClickListener() {
-
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				new UploadGPXFilesTask(la, descr.getText().toString(), tags.getText().toString(),
-						(UploadVisibility) visibility.getItemAtPosition(visibility.getSelectedItemPosition())
-				).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, info);
-			}
-		});
-		bldr.show();
-		return true;
 	}
 
 	@Override

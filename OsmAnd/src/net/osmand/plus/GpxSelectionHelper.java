@@ -23,7 +23,8 @@ import net.osmand.PlatformUtil;
 import net.osmand.StateChangedListener;
 import net.osmand.data.LatLon;
 import net.osmand.plus.GPXDatabase.GpxDataItem;
-import net.osmand.plus.MapMarkersHelper.MapMarkersGroup;
+import net.osmand.plus.mapmarkers.MapMarkersHelper;
+import net.osmand.plus.mapmarkers.MapMarkersGroup;
 import net.osmand.plus.activities.SavingTrackHelper;
 import net.osmand.plus.helpers.GpxUiHelper;
 import net.osmand.plus.helpers.GpxUiHelper.GPXDataSetAxisType;
@@ -407,10 +408,10 @@ public class GpxSelectionHelper {
 			boolean split = true;
 			if (group.splitDistance > 0) {
 				List<GPXTrackAnalysis> trackSegments = r.splitByDistance(group.splitDistance, joinSegments);
-				as = trackSegments.toArray(new GPXTrackAnalysis[trackSegments.size()]);
+				as = trackSegments.toArray(new GPXTrackAnalysis[0]);
 			} else if (group.splitTime > 0) {
 				List<GPXTrackAnalysis> trackSegments = r.splitByTime(group.splitTime, joinSegments);
-				as = trackSegments.toArray(new GPXTrackAnalysis[trackSegments.size()]);
+				as = trackSegments.toArray(new GPXTrackAnalysis[0]);
 			} else {
 				split = false;
 				as = new GPXTrackAnalysis[] {GPXTrackAnalysis.segment(0, r)};

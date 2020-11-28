@@ -39,8 +39,8 @@ import net.osmand.plus.ContextMenuAdapter;
 import net.osmand.plus.ContextMenuAdapter.ItemClickListener;
 import net.osmand.plus.ContextMenuItem;
 import net.osmand.plus.ContextMenuItem.ItemBuilder;
-import net.osmand.plus.MapMarkersHelper;
-import net.osmand.plus.MapMarkersHelper.MapMarker;
+import net.osmand.plus.mapmarkers.MapMarkersHelper;
+import net.osmand.plus.mapmarkers.MapMarker;
 import net.osmand.plus.OsmAndLocationProvider;
 import net.osmand.plus.OsmandApplication;
 import net.osmand.plus.OsmandPlugin;
@@ -76,6 +76,7 @@ import net.osmand.plus.views.layers.MapControlsLayer;
 import net.osmand.plus.wikipedia.WikipediaDialogFragment;
 import net.osmand.plus.wikivoyage.WikivoyageWelcomeDialogFragment;
 import net.osmand.plus.wikivoyage.data.TravelDbHelper;
+import net.osmand.plus.wikivoyage.data.TravelHelper;
 import net.osmand.plus.wikivoyage.explore.WikivoyageExploreActivity;
 import net.osmand.router.GeneralRouter;
 import net.osmand.util.Algorithms;
@@ -924,9 +925,9 @@ public class MapActivityActions implements DialogProvider {
 					@Override
 					public boolean onContextMenuClick(ArrayAdapter<ContextMenuItem> adapter, int itemId, int pos, boolean isChecked, int[] viewCoordinates) {
 						MapActivity.clearPrevActivityIntent();
-						TravelDbHelper travelDbHelper = getMyApplication().getTravelDbHelper();
-						travelDbHelper.initTravelBooks();
-						if (travelDbHelper.getSelectedTravelBook() == null) {
+						TravelHelper travelHelper = getMyApplication().getTravelHelper();
+						travelHelper.initTravelBooks();
+						if (travelHelper.getSelectedTravelBook() == null) {
 							WikivoyageWelcomeDialogFragment.showInstance(mapActivity.getSupportFragmentManager());
 						} else {
 							Intent intent = new Intent(mapActivity, WikivoyageExploreActivity.class);
@@ -939,7 +940,7 @@ public class MapActivityActions implements DialogProvider {
 
 		optionsMenuHelper.addItem(new ItemBuilder().setTitleId(R.string.plan_a_route, mapActivity)
 				.setId(DRAWER_MEASURE_DISTANCE_ID)
-				.setIcon(R.drawable.ic_action_ruler)
+				.setIcon(R.drawable.ic_action_plan_route)
 				.setListener(new ItemClickListener() {
 					@Override
 					public boolean onContextMenuClick(ArrayAdapter<ContextMenuItem> adapter, int itemId, int position, boolean isChecked, int[] viewCoordinates) {
@@ -1148,7 +1149,7 @@ public class MapActivityActions implements DialogProvider {
 		items.add(getString(R.string.show_location));
 		items.add(getString(R.string.shared_string_show_details));
 		AlertDialog.Builder menu = new AlertDialog.Builder(mapActivity);
-		menu.setItems(items.toArray(new String[items.size()]), new DialogInterface.OnClickListener() {
+		menu.setItems(items.toArray(new String[0]), new DialogInterface.OnClickListener() {
 			@Override
 			public void onClick(DialogInterface dialog, int item) {
 				dialog.dismiss();

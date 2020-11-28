@@ -67,8 +67,8 @@ import net.osmand.plus.AppInitializer;
 import net.osmand.plus.AppInitializer.AppInitializeListener;
 import net.osmand.plus.AppInitializer.InitEvents;
 import net.osmand.plus.GpxSelectionHelper.GpxDisplayItem;
-import net.osmand.plus.MapMarkersHelper.MapMarker;
-import net.osmand.plus.MapMarkersHelper.MapMarkerChangedListener;
+import net.osmand.plus.mapmarkers.MapMarker;
+import net.osmand.plus.mapmarkers.MapMarkersHelper.MapMarkerChangedListener;
 import net.osmand.plus.OnDismissDialogFragmentListener;
 import net.osmand.plus.OsmAndConstants;
 import net.osmand.plus.OsmAndLocationSimulation;
@@ -83,7 +83,7 @@ import net.osmand.plus.base.BaseOsmAndFragment;
 import net.osmand.plus.base.ContextMenuFragment;
 import net.osmand.plus.base.FailSafeFuntions;
 import net.osmand.plus.base.MapViewTrackingUtilities;
-import net.osmand.plus.chooseplan.OsmLiveCancelledDialog;
+import net.osmand.plus.chooseplan.OsmLiveGoneDialog;
 import net.osmand.plus.dashboard.DashBaseFragment;
 import net.osmand.plus.dashboard.DashboardOnMap;
 import net.osmand.plus.dialogs.CrashBottomSheetDialogFragment;
@@ -115,10 +115,10 @@ import net.osmand.plus.mapcontextmenu.other.TrackDetailsMenu;
 import net.osmand.plus.mapmarkers.PlanRouteFragment;
 import net.osmand.plus.measurementtool.GpxApproximationFragment;
 import net.osmand.plus.measurementtool.GpxData;
+import net.osmand.plus.measurementtool.LoginBottomSheetFragment;
 import net.osmand.plus.measurementtool.MeasurementEditingContext;
 import net.osmand.plus.measurementtool.MeasurementToolFragment;
 import net.osmand.plus.measurementtool.SnapTrackWarningFragment;
-import net.osmand.plus.osmedit.OsmEditingFragment;
 import net.osmand.plus.render.RendererRegistry;
 import net.osmand.plus.resources.ResourceManager;
 import net.osmand.plus.routepreparationmenu.ChooseRouteFragment;
@@ -304,9 +304,6 @@ public class MapActivity extends OsmandActionBarActivity implements DownloadEven
 		}
 		mapActions = new MapActivityActions(this);
 		mapLayers = new MapActivityLayers(this);
-		if (mapViewTrackingUtilities == null) {
-			mapViewTrackingUtilities = new MapViewTrackingUtilities(app);
-		}
 		dashboardOnMap.createDashboardView();
 		checkAppInitialization();
 
@@ -845,8 +842,6 @@ public class MapActivity extends OsmandActionBarActivity implements DownloadEven
 			getSupportFragmentManager().beginTransaction()
 					.add(R.id.fragmentContainer, new FirstUsageWelcomeFragment(),
 							FirstUsageWelcomeFragment.TAG).commitAllowingStateLoss();
-		} else if (!isFirstScreenShowing() && OsmLiveCancelledDialog.shouldShowDialog(app)) {
-			OsmLiveCancelledDialog.showInstance(getSupportFragmentManager());
 		} else if (SendAnalyticsBottomSheetDialogFragment.shouldShowDialog(app)) {
 			SendAnalyticsBottomSheetDialogFragment.showInstance(app, getSupportFragmentManager(), null);
 		}
@@ -2217,8 +2212,8 @@ public class MapActivity extends OsmandActionBarActivity implements DownloadEven
 		return getFragment(GpxApproximationFragment.TAG);
 	}
 
-	public OsmEditingFragment getOsmEditingFragment() {
-		return getFragment(SettingsScreenType.OPEN_STREET_MAP_EDITING.fragmentName);
+	public LoginBottomSheetFragment getLoginBottomSheetFragment() {
+		return getFragment(LoginBottomSheetFragment.TAG);
 	}
 
 	public SnapTrackWarningFragment getSnapTrackWarningBottomSheet() {
@@ -2290,6 +2285,9 @@ public class MapActivity extends OsmandActionBarActivity implements DownloadEven
 	@Override
 	public void onInAppPurchaseGetItems() {
 		DiscountHelper.checkAndDisplay(this);
+		if (!isFirstScreenShowing() && OsmLiveGoneDialog.shouldShowDialog(app)) {
+			OsmLiveGoneDialog.showInstance(app, getSupportFragmentManager());
+		}
 	}
 
 	public enum ShowQuickSearchMode {

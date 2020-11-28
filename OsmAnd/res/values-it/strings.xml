@@ -222,7 +222,7 @@
     <string name="version_index_is_not_supported">La versione dell\'indice \'\'{0}\'\' non è supportata</string>
     <string name="osmand_routing_experimental">Il routing offline di OsmAnd è sperimentale e non funziona per distanze superiori ai 20 km.
 \n
-\nNavigazione eseguita temporaneamente tramite servizio online CloudMade.</string>
+\nNavigazione temporaneamente spostata sul servizio online CloudMade.</string>
     <string name="specified_dir_doesnt_exist">Impossibile trovare la cartella specificata.</string>
     <string name="application_dir">Cartella salvataggio dei dati</string>
     <string name="osmand_net_previously_installed">Tutti i dati offline nella vecchia app verranno supportati dalla nuova, ma i Preferiti devono essere esportati dalla vecchia app e importati nella nuova.</string>
@@ -313,13 +313,13 @@
     <string name="gps_provider">GPS</string>
     <string name="int_seconds">secondi</string>
     <string name="int_min">min.</string>
-    <string name="background_service_int_descr">Intervallo di tempo di risveglio usato dal servizio in background:</string>
+    <string name="background_service_int_descr">Intervallo di risveglio usato dal servizio in background:</string>
     <string name="background_service_int">Intervallo di risveglio GPS</string>
-    <string name="background_service_provider_descr">Fornitore di posizione utilizzato dal servizio in background:</string>
+    <string name="background_service_provider_descr">Metodo di localizzazione utilizzato dal servizio in background:</string>
     <string name="background_service_provider">Fornitore di posizionamento</string>
     <string name="background_router_service_descr">Traccia la posizione mentre lo schermo è spento.</string>
     <string name="background_router_service">Esegui OsmAnd in background</string>
-    <string name="off_router_service_no_gps_available">Il servizio di navigazione in background di OsmAnd necessita del sistema di posizionamento attivato.</string>
+    <string name="off_router_service_no_gps_available">Il servizio di navigazione in background necessita di un sistema di posizionamento attivo.</string>
     <string name="hide_poi_filter">Nascondi filtro</string>
     <string name="show_poi_filter">Visualizza filtro</string>
     <string name="search_poi_filter">Filtro</string>
@@ -2695,13 +2695,13 @@
     <string name="wiki_article_search_text">Sto cercando l’articolo Wiki corrispondente</string>
     <string name="wiki_article_not_found">Articolo non trovato</string>
     <string name="how_to_open_wiki_title">Come aprire gli articoli di Wikipedia?</string>
-    <string name="osmand_plus_extended_description_part2">Navigazione 
-\n • Funziona online (veloce) o offline (nessuna tariffa di roaming quando sei all\'estero) 
-\n • Guida vocale svolta-dopo-svolta (voci registrate e sintetizzate) 
-\n • Guida sulla corsia opzionale, visualizzazione dei nomi delle strade, e tempo di arrivo stimato 
-\n • Supporto per punti intermedi del tuo itinerario 
-\n • Rielaborazione del percorso automatico ogni volta che si devia 
-\n • Ricerca di posti per indirizzo, per tipo (es: ristorante, albergo, stazione di servizio, museo) o per coordinate geografiche
+    <string name="osmand_plus_extended_description_part2">Navigazione
+\n • Funziona online (veloce) o offline (nessuna tariffa di roaming quando sei all\'estero)
+\n • Guida vocale svolta-per-svolta (voci registrate e sintetizzate)
+\n • Indicazioni di corsia opzionali, visualizzazione dei nomi delle strade, e tempo di arrivo stimato
+\n • Supporto dei punti intermedi del tuo itinerario
+\n • Rielaborazione del percorso automatico ogni volta che si devia
+\n • Ricerca di luoghi per indirizzo, per tipo (es: ristorante, albergo, stazione di servizio, museo) o per coordinate geografiche
 \n</string>
     <string name="hide_full_description">Nascondi la descrizione completa</string>
     <string name="show_full_description">Mostra la descrizione completa</string>
@@ -2743,12 +2743,12 @@
 \n • Condividi la tua posizione in modo tale che i tuoi amici possano trovarti
 \n</string>
     <string name="osmand_plus_extended_description_part6">Funzioni per pedoni e velocipedi
-\n • Mostra percorsi per pedoni, escursionisti e biciclette, ottimo per le attività all’aperto
+\n • Mostra percorsi per pedoni, escursionisti e biciclette, ottimo per le attività all\'aperto
 \n • Navigazione e visualizzazione speciali per pedoni e velocipedi
 \n • Scegli se mostrare le fermate del trasporto pubblico (bus, tram e treno) inclusi i nomi delle linee
 \n • Scegli se registrare la tua visita su un file GPX locale oppure su di un servizio online
 \n • Scegli se mostrare la velocità e l’altitudine
-\n • Mostra le curve di livello e l’ombreggiatura dei rilievi</string>
+\n • Mostra le curve di livello e l’ombreggiatura dei rilievi (attraverso il componente aggiuntivo)</string>
     <string name="unirs_render_descr">Modifica dello stile standard per un maggior contrasto delle strade pedonali e piste ciclabili. Utilizza i colori della versione vecchia di Mapnik.</string>
     <string name="access_intermediate_arrival_time">Orario di arrivo intermedio</string>
     <string name="map_widget_intermediate_time">Orario intermedio</string>
@@ -3417,7 +3417,7 @@
     <string name="photo_notes">Note fotografiche</string>
     <string name="route_recalculation">Ricalcolo del percorso</string>
     <string name="login_and_pass">Nome utente e password</string>
-    <string name="plugin_global_prefs_info">Queste impostazioni del plugin sono globali e si applicano a tutti i profili.</string>
+    <string name="plugin_global_prefs_info">Queste impostazioni del plugin sono globali e si applicano a tutti i profili</string>
     <string name="osm_editing">Modifica di OpenStreetMap</string>
     <string name="osm_edits_view_descr">È possibile visualizzare tutte le modifiche non caricate o le note OSM in %1$s. I punti caricati non vengono visualizzati in OsmAnd.</string>
     <string name="app_mode_osm">OSM</string>
@@ -3940,9 +3940,61 @@
     <string name="icon_group_amenity">Amenità</string>
     <string name="icon_group_special">Speciale</string>
     <string name="icon_group_transport">Trasporto</string>
-    <string name="icon_group_service">Servizio</string>
+    <string name="icon_group_service">Servizi</string>
     <string name="icon_group_symbols">Simboli</string>
     <string name="icon_group_sport">Sport</string>
     <string name="icon_group_emergency">Emergenza</string>
     <string name="icon_group_travel">Viaggio</string>
+    <string name="message_you_need_add_two_points_to_show_graphs">Devi aggiungere almeno due punti</string>
+    <string name="osm_edit_close_note">Chiudi la nota OSM</string>
+    <string name="osm_edit_comment_note">Commenta la nota OSM</string>
+    <string name="osm_login_descr">Puoi autenticarti con il metodo sicuro OAuth o utilizzare le tue credenziali.</string>
+    <string name="shared_string_add_photo">Aggiungi foto</string>
+    <string name="register_on_openplacereviews">Registrati su
+\nOpenPlaceReviews.org</string>
+    <string name="register_on_openplacereviews_desc">Per contribuire delle altre foto autenticati nel sito del progetto a sorgente aperto OpenPlaceReviews.org.</string>
+    <string name="register_opr_create_new_account">Crea un nuovo account</string>
+    <string name="register_opr_have_account">Ho già un account</string>
+    <string name="shared_string_search_history">Cronologia di ricerca</string>
+    <string name="app_mode_kayak">Kayak</string>
+    <string name="app_mode_motorboat">Motoscafo</string>
+    <string name="login_open_street_map">Connettiti a OpenStreetMap</string>
+    <string name="login_open_street_map_org">Connettiti a OpenStreetMap.org</string>
+    <string name="sign_in_with_open_street_map">Registrati con OpenStreetMap</string>
+    <string name="open_street_map_login_mode">Devi fare il login per inviare nuove modifiche o dei cambiamenti.
+\n
+\nPuoi fare login utilizzando il metodo sicuro OAuth o il nomeutente e password.</string>
+    <string name="use_login_password">Usa login e password</string>
+    <string name="login_account">Account</string>
+    <string name="user_login">Entra</string>
+    <string name="manage_subscription">Gestisci la sottoscrizione</string>
+    <string name="subscription_payment_issue_title">C\'è un problema con la tua sottoscrizione. Clicca sul pulsante per andare alle impostazioni di sottoscrizione di Google Play per correggere il tuo metodo di pagamento.</string>
+    <string name="subscription_expired_title">La sottoscrizione di OsmAnd Live è terminata</string>
+    <string name="subscription_paused_title">La sottoscrizione di OsmAnd Live è stata messa in pausa</string>
+    <string name="subscription_on_hold_title">La sottoscrizione di OsmAnd Live è in sospeso</string>
+    <string name="markers_history">Cronologia dei marcatori</string>
+    <string name="send_files_to_openstreetmap">Invia il file GPX a OpenStreetMap</string>
+    <string name="enter_text_separated">Immetti le etichette separate dalla virgola.</string>
+    <string name="gpx_upload_public_visibility_descr">\"Pubblico\" significa che la traccia è visualizzata pubblicamente nelle tue tracce GPS, nelle liste pubbliche di tracce GPS con le informazioni temporali in forma grezza. I dati forniti attraverso le API non conducono alla tua pagina delle tracce. Le informazioni temporali dei punti traccia non sono disponibili attraverso le API GPS pubbliche, e i punti della traccia non sono ordinati cronologicamente.</string>
+    <string name="gpx_upload_private_visibility_descr">\"Privato\" significa che la traccia non è visualizzabile in alcuna lista pubblica ma i suoi punti, in ordine non cronologico, sono disponibili attraverso le API GPS senza le informazioni temporali.</string>
+    <string name="gpx_upload_identifiable_visibility_descr">\"Identificabile\" significa che la traccia è visualizzabile nelle Mie tracce GPS e nelle liste pubbliche, es. gli altri utenti potranno scaricare la traccia grezza e associarla con il tuo nome utente. I punti della traccia, con le loro informazioni temporali, saranno riconducibili, attraverso le API GPS, alla tua traccia originale.</string>
+    <string name="gpx_upload_trackable_visibility_descr">\"Tracciabile\" significa che la traccia non è visualizzabile in alcuna lista pubblica, ma solo i suoi punti, processati, con le informazioni temporali (che non possono essere direttamente associati a te) attraverso le API GPS pubbliche.</string>
+    <string name="add_to_mapillary">Aggiungi a Mapillary</string>
+    <string name="add_to_opr">Aggiungi a OpenPlaceReviews</string>
+    <string name="add_photos_descr">OsmAnd mostra foto da più sorgenti:
+\nOpenPlaceReviews - foto PDI;
+\nMapillary - immagini stradali;
+\nWeb / Wikimedia - foto PDI OpenStreetMap.</string>
+    <string name="shared_string_resources">Risorse</string>
+    <string name="approximate_file_size">Dimesione approssimativa del file</string>
+    <string name="select_data_to_export">Seleziona i dati da esportare nel file.</string>
+    <string name="file_size_needed_for_import">Necessario per l\'importazione</string>
+    <string name="export_not_enough_space_descr">Il tuo dispositivo ha solo %1$s liberi. Libera dello spazio o deseleziona alcune voci da esportare.</string>
+    <string name="export_not_enough_space">Non c\'è abbastanza spazio</string>
+    <string name="select_groups_for_import">Seleziona i gruppi da importare.</string>
+    <string name="select_items_for_import">Seleziona gli oggetti da importare.</string>
+    <string name="use_dev_url_descr">Per testare l\'upload di Note OSM / PDI / GPX, invece di utilizzare invece di openstreetmap.org spostati su dev.openstreetmap.org.</string>
+    <string name="use_dev_url">Utilizza dev.openstreetmap.org</string>
+    <string name="cannot_upload_image">Impossibile caricare l\'immagine, riprovare in seguito</string>
+    <string name="select_picture">Scegli la foto</string>
 </resources>

@@ -31,8 +31,8 @@ import net.osmand.data.PointDescription;
 import net.osmand.plus.FavouritesDbHelper;
 import net.osmand.plus.GpxSelectionHelper;
 import net.osmand.plus.GpxSelectionHelper.SelectedGpxFile;
-import net.osmand.plus.MapMarkersHelper;
-import net.osmand.plus.MapMarkersHelper.MapMarker;
+import net.osmand.plus.mapmarkers.MapMarkersHelper;
+import net.osmand.plus.mapmarkers.MapMarker;
 import net.osmand.plus.OsmandApplication;
 import net.osmand.plus.OsmandPlugin;
 import net.osmand.plus.R;
@@ -871,7 +871,7 @@ public class ExternalApiHelper {
 			searchTypes.add(HOUSE);
 			searchTypes.add(STREET_INTERSECTION);
 		}
-		searchSettings = searchSettings.setSearchTypes(searchTypes.toArray(new ObjectType[searchTypes.size()]));
+		searchSettings = searchSettings.setSearchTypes(searchTypes.toArray(new ObjectType[0]));
 
 		core.search(searchQuery, false, null, searchSettings);
 	}

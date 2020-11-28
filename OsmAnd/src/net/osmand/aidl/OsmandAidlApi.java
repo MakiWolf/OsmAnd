@@ -55,8 +55,8 @@ import net.osmand.plus.FavouritesDbHelper;
 import net.osmand.plus.GPXDatabase.GpxDataItem;
 import net.osmand.plus.GpxSelectionHelper;
 import net.osmand.plus.GpxSelectionHelper.SelectedGpxFile;
-import net.osmand.plus.MapMarkersHelper;
-import net.osmand.plus.MapMarkersHelper.MapMarker;
+import net.osmand.plus.mapmarkers.MapMarkersHelper;
+import net.osmand.plus.mapmarkers.MapMarker;
 import net.osmand.plus.OsmandApplication;
 import net.osmand.plus.OsmandPlugin;
 import net.osmand.plus.SQLiteTileSource;
@@ -2312,7 +2312,7 @@ public class OsmandAidlApi {
 			File exportDir = app.getSettings().getExternalStorageDirectory();
 			String fileName = appMode.toHumanString();
 			SettingsHelper settingsHelper = app.getSettingsHelper();
-			settingsItems.addAll(settingsHelper.getFilteredSettingsItems(settingsHelper.getAdditionalData(false), settingsTypes));
+			settingsItems.addAll(settingsHelper.getFilteredSettingsItems(settingsTypes, false));
 			settingsHelper.exportSettings(exportDir, fileName, null, settingsItems, true);
 			return true;
 		}
