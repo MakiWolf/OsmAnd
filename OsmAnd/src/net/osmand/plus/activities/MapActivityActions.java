@@ -3,6 +3,7 @@ package net.osmand.plus.activities;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.DialogInterface;
+import android.content.DialogInterface.OnDismissListener;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -39,8 +40,6 @@ import net.osmand.plus.ContextMenuAdapter;
 import net.osmand.plus.ContextMenuAdapter.ItemClickListener;
 import net.osmand.plus.ContextMenuItem;
 import net.osmand.plus.ContextMenuItem.ItemBuilder;
-import net.osmand.plus.MapMarkersHelper;
-import net.osmand.plus.MapMarkersHelper.MapMarker;
 import net.osmand.plus.OsmAndLocationProvider;
 import net.osmand.plus.OsmandApplication;
 import net.osmand.plus.OsmandPlugin;
@@ -56,12 +55,16 @@ import net.osmand.plus.download.IndexItem;
 import net.osmand.plus.liveupdates.OsmLiveActivity;
 import net.osmand.plus.mapcontextmenu.AdditionalActionsBottomSheetDialogFragment;
 import net.osmand.plus.mapcontextmenu.AdditionalActionsBottomSheetDialogFragment.ContextMenuItemClickListener;
+import net.osmand.plus.mapmarkers.MapMarker;
 import net.osmand.plus.mapmarkers.MapMarkersDialogFragment;
+import net.osmand.plus.mapmarkers.MapMarkersHelper;
 import net.osmand.plus.mapmarkers.MarkersPlanRouteContext;
 import net.osmand.plus.measurementtool.MeasurementToolFragment;
 import net.osmand.plus.measurementtool.StartPlanRouteBottomSheet;
 import net.osmand.plus.monitoring.OsmandMonitoringPlugin;
-import net.osmand.plus.profiles.RoutingProfileDataObject;
+import net.osmand.plus.osmedit.dialogs.DismissRouteBottomSheetFragment;
+import net.osmand.plus.profiles.ProfileDataObject;
+import net.osmand.plus.profiles.ProfileDataUtils;
 import net.osmand.plus.routepreparationmenu.MapRouteInfoMenu;
 import net.osmand.plus.routepreparationmenu.WaypointsFragment;
 import net.osmand.plus.routing.RouteProvider.GPXRouteParamsBuilder;
@@ -75,7 +78,7 @@ import net.osmand.plus.views.OsmandMapTileView;
 import net.osmand.plus.views.layers.MapControlsLayer;
 import net.osmand.plus.wikipedia.WikipediaDialogFragment;
 import net.osmand.plus.wikivoyage.WikivoyageWelcomeDialogFragment;
-import net.osmand.plus.wikivoyage.data.TravelDbHelper;
+import net.osmand.plus.wikivoyage.data.TravelHelper;
 import net.osmand.plus.wikivoyage.explore.WikivoyageExploreActivity;
 import net.osmand.router.GeneralRouter;
 import net.osmand.util.Algorithms;
@@ -119,7 +122,6 @@ import static net.osmand.aidlapi.OsmAndCustomizationConstants.MAP_CONTEXT_MENU_S
 import static net.osmand.plus.ContextMenuAdapter.PROFILES_CHOSEN_PROFILE_TAG;
 import static net.osmand.plus.ContextMenuAdapter.PROFILES_CONTROL_BUTTON_TAG;
 import static net.osmand.plus.ContextMenuAdapter.PROFILES_NORMAL_PROFILE_TAG;
-import static net.osmand.plus.settings.fragments.NavigationFragment.getRoutingProfiles;
 
 
 public class MapActivityActions implements DialogProvider {
@@ -553,7 +555,7 @@ public class MapActivityActions implements DialogProvider {
 		TargetPointsHelper targets = app.getTargetPointsHelper();
 
 		ApplicationMode mode = appMode != null ? appMode : getRouteMode(from);
-		//app.getSettings().APPLICATION_MODE.set(mode);
+		//app.getSettings().setApplicationMode(mode, false);
 		app.getRoutingHelper().setAppMode(mode);
 		app.initVoiceCommandPlayer(mapActivity, mode, true, null, false, false, showMenu);
 		// save application mode controls
@@ -586,7 +588,7 @@ public class MapActivityActions implements DialogProvider {
 		TargetPointsHelper targets = app.getTargetPointsHelper();
 
 		ApplicationMode mode = getRouteMode(null);
-		//app.getSettings().APPLICATION_MODE.set(mode);
+		//app.getSettings().setApplicationMode(mode, false);
 		app.getRoutingHelper().setAppMode(mode);
 		//Test for #2810: No need to init player here?
 		//app.initVoiceCommandPlayer(mapActivity, true, null, false, false);
@@ -735,12 +737,12 @@ public class MapActivityActions implements DialogProvider {
 
 		String modeDescription;
 
-		Map<String, RoutingProfileDataObject> profilesObjects = getRoutingProfiles(app);
+		Map<String, ProfileDataObject> profilesObjects = ProfileDataUtils.getRoutingProfiles(app);
 		for (final ApplicationMode appMode : activeModes) {
 			if (appMode.isCustomProfile()) {
-				modeDescription = getProfileDescription(app, appMode, profilesObjects, getString(R.string.profile_type_custom_string));
+				modeDescription = getProfileDescription(app, appMode, profilesObjects, getString(R.string.profile_type_user_string));
 			} else {
-				modeDescription = getProfileDescription(app, appMode, profilesObjects, getString(R.string.profile_type_base_string));
+				modeDescription = getProfileDescription(app, appMode, profilesObjects, getString(R.string.profile_type_osmand_string));
 			}
 
 			int tag = currentMode.equals(appMode) ? PROFILES_CHOSEN_PROFILE_TAG : PROFILES_NORMAL_PROFILE_TAG;
@@ -754,7 +756,7 @@ public class MapActivityActions implements DialogProvider {
 					.setListener(new ItemClickListener() {
 						@Override
 						public boolean onContextMenuClick(ArrayAdapter<ContextMenuItem> adapter, int itemId, int position, boolean isChecked, int[] viewCoordinates) {
-							app.getSettings().APPLICATION_MODE.set(appMode);
+							app.getSettings().setApplicationMode(appMode);
 							updateDrawerMenu();
 							return false;
 						}
@@ -924,9 +926,9 @@ public class MapActivityActions implements DialogProvider {
 					@Override
 					public boolean onContextMenuClick(ArrayAdapter<ContextMenuItem> adapter, int itemId, int pos, boolean isChecked, int[] viewCoordinates) {
 						MapActivity.clearPrevActivityIntent();
-						TravelDbHelper travelDbHelper = getMyApplication().getTravelDbHelper();
-						travelDbHelper.initTravelBooks();
-						if (travelDbHelper.getSelectedTravelBook() == null) {
+						TravelHelper travelHelper = getMyApplication().getTravelHelper();
+						travelHelper.initializeDataOnAppStartup();
+						if (!travelHelper.isAnyTravelBookPresent()) {
 							WikivoyageWelcomeDialogFragment.showInstance(mapActivity.getSupportFragmentManager());
 						} else {
 							Intent intent = new Intent(mapActivity, WikivoyageExploreActivity.class);
@@ -939,7 +941,7 @@ public class MapActivityActions implements DialogProvider {
 
 		optionsMenuHelper.addItem(new ItemBuilder().setTitleId(R.string.plan_a_route, mapActivity)
 				.setId(DRAWER_MEASURE_DISTANCE_ID)
-				.setIcon(R.drawable.ic_action_ruler)
+				.setIcon(R.drawable.ic_action_plan_route)
 				.setListener(new ItemClickListener() {
 					@Override
 					public boolean onContextMenuClick(ArrayAdapter<ContextMenuItem> adapter, int itemId, int position, boolean isChecked, int[] viewCoordinates) {
@@ -1044,11 +1046,11 @@ public class MapActivityActions implements DialogProvider {
 		//switch profile button
 		ApplicationMode currentMode = app.getSettings().APPLICATION_MODE.get();
 		String modeDescription;
-		Map<String, RoutingProfileDataObject> profilesObjects = getRoutingProfiles(app);
+		Map<String, ProfileDataObject> profilesObjects = ProfileDataUtils.getRoutingProfiles(app);
 		if (currentMode.isCustomProfile()) {
-			modeDescription = getProfileDescription(app, currentMode, profilesObjects, getString(R.string.profile_type_custom_string));
+			modeDescription = getProfileDescription(app, currentMode, profilesObjects, getString(R.string.profile_type_user_string));
 		} else {
-			modeDescription = getProfileDescription(app, currentMode, profilesObjects, getString(R.string.profile_type_base_string));
+			modeDescription = getProfileDescription(app, currentMode, profilesObjects, getString(R.string.profile_type_osmand_string));
 		}
 
 		int icArrowResId = listExpanded ? R.drawable.ic_action_arrow_drop_up : R.drawable.ic_action_arrow_drop_down;
@@ -1085,12 +1087,12 @@ public class MapActivityActions implements DialogProvider {
 	}
 
 	private String getProfileDescription(OsmandApplication app, ApplicationMode mode,
-	                                     Map<String, RoutingProfileDataObject> profilesObjects, String defaultDescription) {
+	                                     Map<String, ProfileDataObject> profilesObjects, String defaultDescription) {
 		String description = defaultDescription;
 
 		String routingProfileKey = mode.getRoutingProfile();
 		if (!Algorithms.isEmpty(routingProfileKey)) {
-			RoutingProfileDataObject profileDataObject = profilesObjects.get(routingProfileKey);
+			ProfileDataObject profileDataObject = profilesObjects.get(routingProfileKey);
 			if (profileDataObject != null) {
 				description = String.format(app.getString(R.string.profile_type_descr_string),
 						Algorithms.capitalizeFirstLetterAndLowercase(profileDataObject.getName()));
@@ -1121,26 +1123,12 @@ public class MapActivityActions implements DialogProvider {
 		}
 	}
 
-	public AlertDialog stopNavigationActionConfirm() {
-		return stopNavigationActionConfirm(null);
+	public void stopNavigationActionConfirm(@Nullable OnDismissListener listener) {
+		stopNavigationActionConfirm(listener, null);
 	}
 
-	public AlertDialog stopNavigationActionConfirm(final Runnable onStopAction) {
-		AlertDialog.Builder builder = new AlertDialog.Builder(mapActivity);
-		// Stop the navigation
-		builder.setTitle(getString(R.string.cancel_route));
-		builder.setMessage(getString(R.string.stop_routing_confirm));
-		builder.setPositiveButton(R.string.shared_string_yes, new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				stopNavigationWithoutConfirm();
-				if (onStopAction != null) {
-					onStopAction.run();
-				}
-			}
-		});
-		builder.setNegativeButton(R.string.shared_string_no, null);
-		return builder.show();
+	public void stopNavigationActionConfirm(@Nullable OnDismissListener listener, @Nullable Runnable onStopAction) {
+		DismissRouteBottomSheetFragment.showInstance(mapActivity.getSupportFragmentManager(), listener, onStopAction);
 	}
 
 	public void whereAmIDialog() {
@@ -1148,7 +1136,7 @@ public class MapActivityActions implements DialogProvider {
 		items.add(getString(R.string.show_location));
 		items.add(getString(R.string.shared_string_show_details));
 		AlertDialog.Builder menu = new AlertDialog.Builder(mapActivity);
-		menu.setItems(items.toArray(new String[items.size()]), new DialogInterface.OnClickListener() {
+		menu.setItems(items.toArray(new String[0]), new DialogInterface.OnClickListener() {
 			@Override
 			public void onClick(DialogInterface dialog, int item) {
 				dialog.dismiss();

@@ -22,12 +22,14 @@ import net.osmand.aidlapi.contextmenu.ContextMenuButtonsParams;
 import net.osmand.aidlapi.contextmenu.RemoveContextMenuButtonsParams;
 import net.osmand.aidlapi.contextmenu.UpdateContextMenuButtonsParams;
 import net.osmand.aidlapi.copyfile.CopyFileParams;
-import net.osmand.aidlapi.customization.MapMarginsParams;
-import net.osmand.aidlapi.info.AppInfoParams;
+import net.osmand.aidlapi.customization.AProfile;
+import net.osmand.aidlapi.customization.CustomPluginParams;
 import net.osmand.aidlapi.customization.CustomizationInfoParams;
+import net.osmand.aidlapi.customization.MapMarginsParams;
 import net.osmand.aidlapi.customization.OsmandSettingsInfoParams;
 import net.osmand.aidlapi.customization.OsmandSettingsParams;
 import net.osmand.aidlapi.customization.ProfileSettingsParams;
+import net.osmand.aidlapi.customization.SelectProfileParams;
 import net.osmand.aidlapi.customization.SetWidgetsParams;
 import net.osmand.aidlapi.events.AKeyEventsParams;
 import net.osmand.aidlapi.favorite.AFavorite;
@@ -48,6 +50,7 @@ import net.osmand.aidlapi.gpx.RemoveGpxParams;
 import net.osmand.aidlapi.gpx.ShowGpxParams;
 import net.osmand.aidlapi.gpx.StartGpxRecordingParams;
 import net.osmand.aidlapi.gpx.StopGpxRecordingParams;
+import net.osmand.aidlapi.info.AppInfoParams;
 import net.osmand.aidlapi.lock.SetLockStateParams;
 import net.osmand.aidlapi.map.ALatLon;
 import net.osmand.aidlapi.map.SetMapLocationParams;
@@ -70,13 +73,16 @@ import net.osmand.aidlapi.navdrawer.NavDrawerFooterParams;
 import net.osmand.aidlapi.navdrawer.NavDrawerHeaderParams;
 import net.osmand.aidlapi.navdrawer.NavDrawerItem;
 import net.osmand.aidlapi.navdrawer.SetNavDrawerItemsParams;
+import net.osmand.aidlapi.navigation.ABlockedRoad;
 import net.osmand.aidlapi.navigation.ANavigationUpdateParams;
 import net.osmand.aidlapi.navigation.ANavigationVoiceRouterMessageParams;
+import net.osmand.aidlapi.navigation.AddBlockedRoadParams;
 import net.osmand.aidlapi.navigation.MuteNavigationParams;
 import net.osmand.aidlapi.navigation.NavigateGpxParams;
 import net.osmand.aidlapi.navigation.NavigateParams;
 import net.osmand.aidlapi.navigation.NavigateSearchParams;
 import net.osmand.aidlapi.navigation.PauseNavigationParams;
+import net.osmand.aidlapi.navigation.RemoveBlockedRoadParams;
 import net.osmand.aidlapi.navigation.ResumeNavigationParams;
 import net.osmand.aidlapi.navigation.StopNavigationParams;
 import net.osmand.aidlapi.navigation.UnmuteNavigationParams;
@@ -690,7 +696,7 @@ public class OsmandAidlServiceV2 extends Service implements AidlCallbackListener
 				return params != null && api != null && api.navigate(
 						params.getStartName(), params.getStartLat(), params.getStartLon(),
 						params.getDestName(), params.getDestLat(), params.getDestLon(),
-						params.getProfile(), params.isForce());
+						params.getProfile(), params.isForce(), params.isNeedLocationPermission());
 			} catch (Exception e) {
 				handleException(e);
 				return false;
@@ -701,7 +707,8 @@ public class OsmandAidlServiceV2 extends Service implements AidlCallbackListener
 		public boolean navigateGpx(NavigateGpxParams params) {
 			try {
 				OsmandAidlApi api = getApi("navigateGpx");
-				return params != null && api != null && api.navigateGpx(params.getData(), params.getUri(), params.isForce());
+				return params != null && api != null && api.navigateGpx(params.getData(), params.getUri(),
+						params.isForce(), params.isNeedLocationPermission());
 			} catch (Exception e) {
 				handleException(e);
 				return false;
@@ -811,7 +818,7 @@ public class OsmandAidlServiceV2 extends Service implements AidlCallbackListener
 				return params != null && api != null && api.navigateSearch(
 						params.getStartName(), params.getStartLat(), params.getStartLon(),
 						params.getSearchQuery(), params.getSearchLat(), params.getSearchLon(),
-						params.getProfile(), params.isForce());
+						params.getProfile(), params.isForce(), params.isNeedLocationPermission());
 			} catch (Exception e) {
 				handleException(e);
 				return false;
@@ -1122,6 +1129,7 @@ public class OsmandAidlServiceV2 extends Service implements AidlCallbackListener
 				return UNKNOWN_API_ERROR;
 			}
 		}
+
 		@Override
 		public long registerForKeyEvents(AKeyEventsParams params, final IOsmAndAidlCallback callback) {
 			try {
@@ -1355,6 +1363,85 @@ public class OsmandAidlServiceV2 extends Service implements AidlCallbackListener
 				handleException(e);
 				return false;
 			}
+		}
+
+		@Override
+		public int getPluginVersion(CustomPluginParams params) {
+			try {
+				OsmandAidlApi api = getApi("getPluginVersion");
+				if (api != null) {
+					return api.getPluginVersion(params.getPluginId());
+				}
+			} catch (Exception e) {
+				handleException(e);
+				return UNKNOWN_API_ERROR;
+			}
+			return CANNOT_ACCESS_API_ERROR;
+		}
+
+		@Override
+		public boolean selectProfile(SelectProfileParams params) {
+			try {
+				OsmandAidlApi api = getApi("selectProfile");
+				return api != null && api.selectProfile(params.getAppModeKey());
+			} catch (Exception e) {
+				handleException(e);
+				return false;
+			}
+		}
+
+		@Override
+		public boolean getProfiles(List<AProfile> profiles) {
+			try {
+				OsmandAidlApi api = getApi("getProfiles");
+				return api != null && api.getProfiles(profiles);
+			} catch (Exception e) {
+				handleException(e);
+				return false;
+			}
+		}
+
+		@Override
+		public boolean getBlockedRoads(List<ABlockedRoad> blockedRoads) {
+			try {
+				OsmandAidlApi api = getApi("getBlockedRoads");
+				return api != null && api.getBlockedRoads(blockedRoads);
+			} catch (Exception e) {
+				handleException(e);
+				return false;
+			}
+		}
+
+		@Override
+		public boolean addRoadBlock(AddBlockedRoadParams params) {
+			try {
+				OsmandAidlApi api = getApi("addRoadBlock");
+				if (params != null && api != null) {
+					ABlockedRoad road = params.getBlockedRoad();
+					if (road != null) {
+						return api.addRoadBlock(road);
+					}
+				}
+			} catch (Exception e) {
+				handleException(e);
+			}
+			return false;
+		}
+
+		@Override
+		public boolean removeRoadBlock(RemoveBlockedRoadParams params) {
+			try {
+				OsmandAidlApi api = getApi("removeRoadBlock");
+				if (params != null && api != null) {
+					ABlockedRoad road = params.getBlockedRoad();
+					if (road != null) {
+						return api.removeRoadBlock(road);
+					}
+				}
+			} catch (Exception e) {
+				handleException(e);
+			}
+			return false;
 		}
 	};
 

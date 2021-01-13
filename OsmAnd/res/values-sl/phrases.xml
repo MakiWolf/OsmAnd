@@ -400,7 +400,7 @@
     <string name="poi_clothes_type">Vrsta</string>
     <string name="poi_shoes_type">Vrsta</string>
     <string name="poi_fire_hydrant_type">Vrsta</string>
-    <string name="poi_fire_hydrant_water_source">Vodni vir</string>
+    <string name="poi_water_source">Vodni vir</string>
     <string name="poi_payment_toll_type">Vrsta plačila</string>
     <string name="poi_traffic_signals_sound">Zvok</string>
     <string name="poi_highway_crossing_type">Vrsta</string>
@@ -422,7 +422,7 @@
     <string name="poi_pump">Črpalka</string>
     <string name="poi_telescope_type">Vrsta</string>
     <string name="poi_animal_training_type">Vrsta</string>
-    <string name="poi_embassy_type">Vrsta</string>
+    <string name="poi_diplomatic_filter">Vrsta</string>
     <string name="poi_city_capital">Glavno mesto</string>
     <string name="poi_healthcare_alternative_types">Specializacija</string>
     <string name="poi_archaeological_site_type">Vrsta</string>

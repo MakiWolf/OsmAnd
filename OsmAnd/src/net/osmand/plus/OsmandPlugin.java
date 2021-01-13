@@ -123,8 +123,8 @@ public abstract class OsmandPlugin {
 		return null;
 	}
 
-	public String getVersion() {
-		return "";
+	public int getVersion() {
+		return -1;
 	}
 
 	/**
@@ -340,6 +340,7 @@ public abstract class OsmandPlugin {
 			try {
 				JSONObject json = new JSONObject();
 				json.put("pluginId", plugin.getId());
+				json.put("version", plugin.getVersion());
 				plugin.writeAdditionalDataToJson(json);
 				plugin.writeDependentFilesJson(json);
 				itemsJson.put(json);
@@ -516,10 +517,6 @@ public abstract class OsmandPlugin {
 		for (OsmandPlugin plugin : getAvailablePlugins()) {
 			plugin.handleRequestPermissionsResult(requestCode, permissions, grantResults);
 		}
-	}
-
-	public boolean destinationReached() {
-		return true;
 	}
 
 	protected void registerLayerContextMenuActions(OsmandMapTileView mapView, ContextMenuAdapter adapter, MapActivity mapActivity) {
@@ -779,17 +776,6 @@ public abstract class OsmandPlugin {
 			plugin.mapActivityScreenOff(activity);
 		}
 	}
-
-	public static boolean onDestinationReached() {
-		boolean b = true;
-		for (OsmandPlugin plugin : getEnabledPlugins()) {
-			if (!plugin.destinationReached()) {
-				b = false;
-			}
-		}
-		return b;
-	}
-
 
 	public static void createLayers(OsmandMapTileView mapView, MapActivity activity) {
 		for (OsmandPlugin plugin : getEnabledPlugins()) {

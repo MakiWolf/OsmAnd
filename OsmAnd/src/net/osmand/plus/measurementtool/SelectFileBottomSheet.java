@@ -9,6 +9,7 @@ import android.widget.TextView;
 
 import androidx.annotation.StringRes;
 import androidx.appcompat.view.ContextThemeWrapper;
+import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -19,8 +20,7 @@ import net.osmand.IndexConstants;
 import net.osmand.OsmAndCollator;
 import net.osmand.plus.OsmandApplication;
 import net.osmand.plus.R;
-import net.osmand.plus.UiUtilities;
-import net.osmand.plus.base.BottomSheetBehaviourDialogFragment;
+import net.osmand.plus.base.MenuBottomSheetDialogFragment;
 import net.osmand.plus.base.bottomsheetmenu.BaseBottomSheetItem;
 import net.osmand.plus.helpers.GpxTrackAdapter;
 import net.osmand.plus.helpers.GpxTrackAdapter.OnItemClickListener;
@@ -29,6 +29,8 @@ import net.osmand.plus.helpers.enums.TracksSortByMode;
 import net.osmand.plus.mapcontextmenu.other.HorizontalSelectionAdapter;
 import net.osmand.plus.mapcontextmenu.other.HorizontalSelectionAdapter.HorizontalSelectionAdapterListener;
 import net.osmand.plus.mapcontextmenu.other.HorizontalSelectionAdapter.HorizontalSelectionItem;
+import net.osmand.plus.widgets.popup.PopUpMenuHelper;
+import net.osmand.plus.widgets.popup.PopUpMenuItem;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -38,11 +40,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static net.osmand.plus.SimplePopUpMenuItemAdapter.*;
 import static net.osmand.plus.helpers.GpxUiHelper.getSortedGPXFilesInfo;
 import static net.osmand.util.Algorithms.collectDirs;
 
-public class SelectFileBottomSheet extends BottomSheetBehaviourDialogFragment {
+public class SelectFileBottomSheet extends MenuBottomSheetDialogFragment {
 
 	private List<File> folders;
 	private HorizontalSelectionAdapter folderAdapter;
@@ -117,12 +118,12 @@ public class SelectFileBottomSheet extends BottomSheetBehaviourDialogFragment {
 		sortButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				final List<SimplePopUpMenuItem> items = new ArrayList<>();
+				final List<PopUpMenuItem> items = new ArrayList<>();
 				for (final TracksSortByMode mode : TracksSortByMode.values()) {
-					items.add(new SimplePopUpMenuItem(
-							getString(mode.getNameId()),
-							app.getUIUtilities().getThemedIcon(mode.getIconId()),
-							new View.OnClickListener() {
+					items.add(new PopUpMenuItem.Builder(app)
+							.setTitleId(mode.getNameId())
+							.setIcon(app.getUIUtilities().getThemedIcon(mode.getIconId()))
+							.setOnClickListener(new View.OnClickListener() {
 								@Override
 								public void onClick(View v) {
 									sortByMode = mode;
@@ -134,10 +135,12 @@ public class SelectFileBottomSheet extends BottomSheetBehaviourDialogFragment {
 									sortFileList();
 									adapter.notifyDataSetChanged();
 								}
-							}, sortByMode == mode
-					));
+							})
+							.setSelected(sortByMode == mode)
+							.create());
 				}
-				UiUtilities.showPopUpMenu(v, items);
+				new PopUpMenuHelper.Builder(v, items, nightMode)
+						.show();
 			}
 		});
 
@@ -301,8 +304,27 @@ public class SelectFileBottomSheet extends BottomSheetBehaviourDialogFragment {
 	}
 
 	@Override
-	protected int getPeekHeight() {
-		return AndroidUtils.dpToPx(getContext(), BOTTOM_SHEET_HEIGHT_DP);
+	protected boolean useScrollableItemsContainer() {
+		return false;
+	}
+
+	@Override
+	protected boolean useExpandableList() {
+		return true;
+	}
+
+	@Override
+	protected int getCustomHeight() {
+		FragmentActivity activity = getActivity();
+		if (activity != null) {
+			int screenHeight = AndroidUtils.getScreenHeight(activity);
+			int statusBarHeight = AndroidUtils.getStatusBarHeight(activity);
+			int navBarHeight = AndroidUtils.getNavBarHeight(activity);
+			int buttonsHeight = getResources().getDimensionPixelSize(R.dimen.dialog_button_ex_height);
+
+			return screenHeight - statusBarHeight - buttonsHeight - navBarHeight - getResources().getDimensionPixelSize(R.dimen.toolbar_height);
+		}
+		return super.getCustomHeight();
 	}
 
 	public static void showInstance(FragmentManager fragmentManager, SelectFileListener listener, Mode mode) {

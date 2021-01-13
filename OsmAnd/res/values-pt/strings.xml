@@ -269,7 +269,7 @@
     <string name="finished_task">Concluído</string>
     <string name="use_online_routing_descr">Utilize a Internet para calcular uma rota.</string>
     <string name="use_online_routing">Utilizar navegação online</string>
-    <string name="user_password">A sua palavra-passe no OSM</string>
+    <string name="user_password">Palavra-passe</string>
     <string name="osm_settings_descr">Especifique as configurações de OpenStreetMap.org (OSM) necessárias para envios ao OSM.</string>
     <string name="data_settings_descr">Especifique o idioma, descarregar/enviar dados.</string>
     <string name="data_settings">Dados</string>
@@ -485,7 +485,7 @@
     <string name="use_fluorescent_overlays">Sobreposições Fluorescentes</string>
     <string name="use_fluorescent_overlays_descr">Usar cores fluorescentes para mostrar trajetos e rotas.</string>
     <string name="offline_edition">Edição offline</string>
-    <string name="offline_edition_descr">Usar sempre a edição offline.</string>
+    <string name="offline_edition_descr">Se a edição offline estiver ativada, as alterações serão primeiro gravadas localmente e enviadas por pedido, caso contrário, as alterações serão enviadas imediatamente.</string>
     <string name="update_poi_does_not_change_indexes">As alterações de POI dentro da app não afetam os ficheiros de mapas descarregados; essas alterações são guardadas num ficheiro separado no seu aparelho.</string>
     <string name="local_openstreetmap_uploading">A enviar…</string>
     <string name="local_openstreetmap_were_uploaded">{0} POI/anotações enviados</string>
@@ -949,7 +949,7 @@
     <string name="files_limit">Restando %1$d ficheiros</string>
     <string name="available_downloads_left">Faltam %1$d ficheiros para descarregar</string>
     <string name="install_paid">Versão completa</string>
-    <string name="cancel_route">Descartar rota</string>
+    <string name="cancel_route">Descartar a rota\?</string>
     <string name="cancel_navigation">Parar navegação</string>
     <string name="local_osm_changes_backup_successful">Ficheiro de alterações OSM gerado %1$s</string>
     <string name="local_osm_changes_backup_failed">Não foi possível fazer backup das alterações do OSM.</string>
@@ -1682,7 +1682,7 @@
     <string name="osm_live_user_public_name">Nome público</string>
     <string name="osm_live_hide_user_name">Não mostrar o meu nome nos relatórios</string>
     <string name="osm_live_support_region">Região de suporte</string>
-    <string name="file_name_containes_illegal_char">O nome do ficheiro contém um carácter inválido</string>
+    <string name="file_name_containes_illegal_char">Carácter inválido no nome do ficheiro</string>
     <string name="reports_for">Relatório para</string>
     <string name="number_of_contributors">Número de colaboradores</string>
     <string name="number_of_edits">Número de edições</string>
@@ -2301,7 +2301,7 @@
     <string name="first_intermediate_dest_description">Adiciona paragem inicial</string>
     <string name="subsequent_dest_description">Mover o destino para cima e criá-lo</string>
     <string name="show_closed_notes">Mostrar anotações fechadas</string>
-    <string name="switch_osm_notes_visibility_desc">Mostrar/esconder anotações do OSM no mapa.</string>
+    <string name="switch_osm_notes_visibility_desc">Mostrar ou ocultar anotações do OSM no mapa.</string>
     <string name="gpx_file_desc">GPX - adequado para exportar para o JOSM ou outros editores do OSM.</string>
     <string name="osc_file_desc">OSC - adequado para exportar para o OSM.</string>
     <string name="shared_string_gpx_file">Ficheiro GPX</string>
@@ -2691,7 +2691,7 @@
     <string name="av_camera_pic_size_descr">Definir o tamanho da imagem da câmara</string>
     <string name="get_plugin">Obter</string>
     <string name="use_fast_recalculation">Recálculo de rota inteligente</string>
-    <string name="use_fast_recalculation_desc">Recalcula apenas a parte inicial da rota. Pode ser usado para viagens longas.</string>
+    <string name="use_fast_recalculation_desc">Recalcula apenas a parte inicial da rota, útil para viagens longas.</string>
     <string name="do_you_like_osmand">Está a gostar do OsmAnd\?</string>
     <string name="we_really_care_about_your_opinion">A sua opinião e o seu feedback são importantes.</string>
     <string name="rate_this_app">Avalie esta aplicação</string>
@@ -3084,9 +3084,9 @@
     <string name="zoom_by_wunderlinq_descr">Alterar o zoom do mapa deslocando a roda para cima e para baixo. Escapar devolve-o à aplicação WunderLINQ.</string>
     <string name="zoom_by_wunderlinq">Usar WunderLINQ para controle</string>
     <string name="quick_action_need_to_add_item_to_list">Adicione pelo menos um item à lista nas configurações de \'Ação rápida\'</string>
-    <string name="routing_attr_piste_type_downhill_name">Esqui alpino/downhill</string>
+    <string name="routing_attr_piste_type_downhill_name">Esqui alpino e downhill</string>
     <string name="routing_attr_piste_type_downhill_description">Pistas para esqui alpino ou downhill e acesso a teleféricos de esqui.</string>
-    <string name="routing_attr_piste_type_nordic_name">Cross Country/esqui nórdico</string>
+    <string name="routing_attr_piste_type_nordic_name">Cross Country e esqui nórdico</string>
     <string name="routing_attr_piste_type_nordic_description">Trilhas para esqui nórdico ou cross-country.</string>
     <string name="routing_attr_piste_type_skitour_name">Passeios de esqui</string>
     <string name="routing_attr_piste_type_skitour_description">Rotas para excursões de esqui.</string>
@@ -3425,7 +3425,7 @@
     <string name="shared_string_hillshade">Sombras de relevo</string>
     <string name="n_items_of_z">%1$s de %2$s</string>
     <string name="download_slope_maps">Pistas</string>
-    <string name="quick_action_show_hide_terrain">Mostrar / ocultar terreno</string>
+    <string name="quick_action_show_hide_terrain">Mostrar ou ocultar terrenos</string>
     <string name="quick_action_terrain_hide">Ocultar terreno</string>
     <string name="quick_action_terrain_show">Mostrar terreno</string>
     <string name="quick_action_terrain_descr">Um botão para mostrar ou esconder a camada do terreno no mapa.</string>
@@ -3446,7 +3446,7 @@
     <string name="checking_for_duplicate_description">OsmAnd verifica %1$s para duplicatas com itens existentes na app. 
 \n 
 \nPode demorar algum tempo.</string>
-    <string name="shared_string_importing">Importando</string>
+    <string name="shared_string_importing">A importar</string>
     <string name="importing_from">Importando dados de %1$s</string>
     <string name="clear_recorded_data_warning">Tem certeza de que deseja limpar os dados gravados\?</string>
     <string name="profile_backup_failed">Não foi possível fazer o backup do perfil.</string>
@@ -3468,8 +3468,8 @@
     <string name="shared_string_profiles">Perfis</string>
     <string name="shared_string_quick_actions">Ações rápidas</string>
     <string name="shared_string_nothing_selected">Nada selecionado</string>
-    <string name="shared_string_poi_types">Tipos de POI</string>
-    <string name="shared_string_preparing">Preparando</string>
+    <string name="shared_string_poi_types">Tipos de PDI</string>
+    <string name="shared_string_preparing">A preparar</string>
     <string name="recalc_angle_dialog_title">Ângulo mínimo entre minha localização e rota</string>
     <string name="recalc_angle_dialog_descr">Segmento reto adicional entre minha localização e a rota calculada será exibida até que a rota seja recalculada</string>
     <string name="shared_string_angle">Ângulo</string>
@@ -3566,9 +3566,9 @@
     <string name="logcat_buffer_descr">Verifique e compartilhe registos detalhados da app</string>
     <string name="select_map_icon_descr">Ícone mostrado em repouso.</string>
     <string name="select_nav_icon_descr">Ícone mostrado ao navegar ou mover.</string>
-    <string name="osm_edits_view_descr">Pode ver todos os erros de OSM do editor carregado em %1$s. Os pontos enviados não são exibidos no OsmAnd.</string>
+    <string name="osm_edits_view_descr">Pode ver todas as suas edições ainda não enviadas ou bugs OSM em %1$s. Os pontos enviados não aparecem no OsmAnd.</string>
     <string name="osm_editing">Edição OSM</string>
-    <string name="plugin_global_prefs_info">Essas configurações aplicam-se a todos os perfis.</string>
+    <string name="plugin_global_prefs_info">Estas configurações de extensão são globais e aplicam-se a todos os perfis</string>
     <string name="login_and_pass">Utilizador e palavra-passe</string>
     <string name="accessibility_announce">Anunciar</string>
     <string name="route_recalculation">Recálculo da rota</string>
@@ -3676,11 +3676,11 @@
     <string name="search_poi_types_descr">Combinar categorias de POI de categorias diferentes. Toque em trocar para selecionar tudo, toque no lado esquerdo para seleção da categoria.</string>
     <string name="quick_action_transport_hide">Ocultar o transporte público</string>
     <string name="quick_action_transport_show">Mostrar transporte público</string>
-    <string name="quick_action_show_hide_transport">Mostrar/ocultar transporte público</string>
+    <string name="quick_action_show_hide_transport">Mostrar ou ocultar transportes públicos</string>
     <string name="quick_action_transport_descr">Botão que mostra ou oculta o transporte público no mapa.</string>
-    <string name="create_edit_poi">Criar / Editar POI</string>
+    <string name="create_edit_poi">Criar ou editar um POI</string>
     <string name="parking_positions">Posições de estacionamento</string>
-    <string name="add_edit_favorite">Adicionar / Editar Favorito</string>
+    <string name="add_edit_favorite">Adicionar ou editar um favorito</string>
     <string name="reset_deafult_order">Restaurar ordem de itens padrão</string>
     <string name="back_to_editing">Voltar à edição</string>
     <string name="quick_action_switch_profile_descr">O botão de ação alterna entre os perfis selecionados.</string>
@@ -3869,7 +3869,7 @@
     <string name="context_menu_item_add_waypoint">Adicionar ponto de passagem de trilha</string>
     <string name="map_widget_monitoring">Gravação de viagem</string>
     <string name="monitoring_control_start">REC</string>
-    <string name="save_global_track_interval_descr">Especifique o intervalo de registo para a gravação geral da faixa (ativado através do widget de gravação Trip no mapa).</string>
+    <string name="save_global_track_interval_descr">Especifique o intervalo de registo para a gravação geral do trilho (ligado através do widget de \'gravação de viagem\' no mapa).</string>
     <string name="gpx_monitoring_stop">Pausar a gravação da viagem</string>
     <string name="gpx_monitoring_start">Retomar a gravação da viagem</string>
     <string name="system_default_theme">Predefinição do sistema</string>
@@ -3890,7 +3890,7 @@
     <string name="disable_recording_once_app_killed_descrp">Vai pausar o registo de faixas quando a app for morta (através de apps recentes). (indicação de fundo de OsmAnd desaparece da barra de notificação do Android.)</string>
     <string name="release_3_8">- Função atualizada de Planear uma rota: permite utilizar diferentes tipos de navegação por segmento e a inclusão de faixas
 \n
-\n - Novo menu Aparência para trilhos: selecionar cor, espessura, setas de direção de visualização, ícones de início/fim
+\n - Novo menu Aparência para trilhos: selecionar cor, espessura, setas de direção de visualização, ícones de início e fim
 \n
 \n - Melhoria da visibilidade dos nós da bicicleta.
 \n
@@ -3906,7 +3906,7 @@
     <string name="sort_last_modified">Última modificação</string>
     <string name="sort_name_descending">Nome: Z – A</string>
     <string name="sort_name_ascending">Nome: A – Z</string>
-    <string name="start_finish_icons">Ícones de início/fim</string>
+    <string name="start_finish_icons">Ícones de início e fim</string>
     <string name="contour_lines_thanks">Obrigado por comprar \'Curvas de nível\'</string>
     <string name="osm_live_payment_desc_hw">Assinatura cobrada por período selecionado. Cancele-a na AppGallery a qualquer momento.</string>
     <string name="osm_live_payment_subscription_management_hw">O pagamento será debitado na sua conta AppGallery no momento da confirmação da compra.
@@ -3923,18 +3923,18 @@
     <string name="use_complex_routing">Roteamento complexo</string>
     <string name="complex_routing_descr">Roteamento em duas fases para a navegação automotiva.</string>
     <string name="use_native_pt">Desenvolvimento nativos de transportes públicos</string>
-    <string name="use_native_pt_desc">Mudar para Cálculo de rotas de transporte público Java (seguro)</string>
-    <string name="perform_oauth_authorization_description">Realize um login OAuth para usar as funcionalidades do osmedit</string>
+    <string name="use_native_pt_desc">Mudar para o Cálculo de rotas de transporte público Java (seguro)</string>
+    <string name="perform_oauth_authorization_description">Entre com o OAuth para usar os recursos do osmedit</string>
     <string name="perform_oauth_authorization">Fazer login via OAuth</string>
     <string name="clear_osm_token">Limpar token do OpenStreetMap OAuth</string>
-    <string name="osm_edit_logout_success">Logout bem sucedido</string>
+    <string name="osm_edit_logout_success">Saiu</string>
     <string name="file_already_imported">O ficheiro já é importado em OsmAnd</string>
     <string name="use_two_phase_routing">Usar algoritmo de roteamento de 2 fases A*</string>
     <string name="snowmobile_render_descr">Para a condução de motos de neve com estradas e pistas dedicadas.</string>
     <string name="shared_string_graph">Gráfico</string>
-    <string name="message_need_calculate_route_before_show_graph">%1$s dados disponíveis apenas nas estradas, precisa calcular uma rota a usar \"Rota entre pontos\" para obtê-la.</string>
-    <string name="message_graph_will_be_available_after_recalculation">Espere pelo recalculo da rota.
-\nO gráfico estará disponível após o recalculo.</string>
+    <string name="message_need_calculate_route_before_show_graph">Dados de %1$s disponíveis apenas em estradas, calcule uma rota a usar \"Rota entre pontos\" para ver os gráficos.</string>
+    <string name="message_graph_will_be_available_after_recalculation">Por favor, espere.
+\nO gráfico estará disponível após o recalculo da rota.</string>
     <string name="ltr_or_rtl_combine_via_dash">%1$s — %2$s</string>
     <string name="app_mode_gap">Lacuna</string>
     <string name="navigate_point_mgrs">MGRS</string>
@@ -3949,5 +3949,73 @@
     <string name="icon_group_sport">Desporto</string>
     <string name="icon_group_emergency">Emergência</string>
     <string name="icon_group_travel">Viagem</string>
-    <string name="message_you_need_add_two_points_to_show_graphs">Deve adicionar pelo menos dois pontos.</string>
+    <string name="message_you_need_add_two_points_to_show_graphs">Adicione pelo menos dois pontos</string>
+    <string name="manage_subscription">Gerir a assinatura</string>
+    <string name="subscription_payment_issue_title">Há um problema com a sua assinatura. Toque no botão para ir às definições de assinatura do Google Play para corrigir o seu método de pagamento.</string>
+    <string name="subscription_expired_title">A assinatura do OsmAnd Live expirou</string>
+    <string name="subscription_paused_title">A assinatura do OsmAnd Live foi pausada</string>
+    <string name="subscription_on_hold_title">A assinatura do OsmAnd Live está em espera</string>
+    <string name="open_street_map_login_mode">Precisa fazer login para enviar alterações novas ou modificadas.
+\n
+\nPode entrar a usar o método seguro OAuth ou usar o seu nome de utilizador e a sua palavra-passe.</string>
+    <string name="login_open_street_map">Fazer login ao OpenStreetMap</string>
+    <string name="login_open_street_map_org">Entrar com OpenStreetMap.org</string>
+    <string name="sign_in_with_open_street_map">Entrar com OpenStreetMap</string>
+    <string name="use_login_password">Usar o nome do utilizador e palavra-passe</string>
+    <string name="login_account">Conta</string>
+    <string name="user_login">Entrar</string>
+    <string name="markers_history">Histórico de marcadores</string>
+    <string name="send_files_to_openstreetmap">Enviar ficherio de GPX ao OpenStreetMap</string>
+    <string name="enter_text_separated">Insira etiquetas separadas por vírgula.</string>
+    <string name="gpx_upload_public_visibility_descr">\"Público\" significa que o rastreamento é mostrado publicamente em Seus traços de GPS e em listas públicas de rastreamento de GPS, e na lista pública de rastreamento com carimbos de data e hora na forma bruta. Os dados servidos através da API não fazem referência à sua página de rastreamento. Os marcadores de ponto de rastreamento não estão disponíveis através da API de GPS pública, e os pontos de rastreamento não estão ordenados cronologicamente.</string>
+    <string name="gpx_upload_private_visibility_descr">\"Privado\" significa que o rastreamento não aparece em nenhuma listagem pública, mas os pontos de rastreamento dela em ordem não cronológica estão disponíveis através da API pública do GPS sem carimbos de tempo.</string>
+    <string name="gpx_upload_identifiable_visibility_descr">\"Identificável\" significa que o rastreamento será mostrado publicamente nos seus traços de GPS e nas listas públicas de rastreamento de GPS, ou seja, outros utilizadoes serão capazes de descarregar o rastreamento bruto e associá-lo ao seu nome de utilizador. Os dados públicos de pontos de rastreamento marcados com a hora da API do GPS servidos através da API de pontos de rastreamento farão referência à sua página de rastreamento original.</string>
+    <string name="gpx_upload_trackable_visibility_descr">\"Rastreável\" significa que o rastreamento não aparece em nenhuma listagem pública, mas pontos de rastreamento processados com carimbos de tempo a partir dele (que não podem ser associados diretamente a si) fazem através de descarregadas da API pública do GPS.</string>
+    <string name="osm_edit_close_note">Fechar nota do OSM</string>
+    <string name="osm_edit_comment_note">Comentário de nota do OSM</string>
+    <string name="osm_login_descr">Pode fazer login pelo método seguro OAuth ou use o seu nome de utilizador e a palavra-passe.</string>
+    <string name="shared_string_add_photo">Adicionar fotos</string>
+    <string name="register_on_openplacereviews">Cadastre-se em
+\nOpenPlaceReviews.org</string>
+    <string name="register_on_openplacereviews_desc">As fotos são fornecidas pelo projeto de dados abertos OpenPlaceReviews.org. Para enviar as suas fotos precisa cadastrar-se no site.</string>
+    <string name="register_opr_create_new_account">Criar uma conta</string>
+    <string name="register_opr_have_account">Já tenho uma conta</string>
+    <string name="shared_string_search_history">Histórico de pesquisa</string>
+    <string name="app_mode_kayak">Caiaque</string>
+    <string name="app_mode_motorboat">Barco a motor</string>
+    <string name="shared_string_resources">Recursos</string>
+    <string name="approximate_file_size">Tamanho aproximado do ficheiro</string>
+    <string name="select_data_to_export">Selecione os dados a serem exportados para o ficheiro.</string>
+    <string name="file_size_needed_for_import">Necessário para a importação</string>
+    <string name="export_not_enough_space_descr">O seu aparelho só tem %1$s livre. Por favor, libere algum espaço ou desmarque alguns itens para exportar.</string>
+    <string name="export_not_enough_space">Não há espaço suficiente</string>
+    <string name="add_to_mapillary">Adicionar ao Mapillary</string>
+    <string name="add_to_opr">Adicionar ao OpenPlaceReviews</string>
+    <string name="add_photos_descr">OsmAnd mostra fotos de várias fontes:
+\nOpenPlaceReviews - fotos de POI;
+\nMapillary - imagens ao nível da rua;
+\nWeb / Wikimedia - fotos de POI como nos dados do OpenStreetMap.</string>
+    <string name="select_groups_for_import">Seleccionar os grupos que serão importados.</string>
+    <string name="select_items_for_import">Seleccionar os objectos que serão importados.</string>
+    <string name="use_dev_url">Utilizar dev.openstreetmap.org</string>
+    <string name="cannot_upload_image">Não é possível enviar a imagem, por favor, tente novamente mais tarde</string>
+    <string name="select_picture">Selecione a imagem</string>
+    <string name="use_dev_url_descr">Mude para usar dev.openstreetmap.org ao invés de openstreetmap.org para testar enviar uma OSM Nota / POI / GPX.</string>
+    <string name="ltr_or_rtl_combine_via_star">%1$s * %2$s</string>
+    <string name="lang_de_casual">Alemão (casual)</string>
+    <string name="elevation_data">Pode usar dados de elevação para representar a subida / descida da sua viagem</string>
+    <string name="app_mode_light_aircraft">Aeronaves ligeiras</string>
+    <string name="plan_route_join_segments">Unir segmentos</string>
+    <string name="plan_route_split_before">Dividir antes</string>
+    <string name="plan_route_split_after">Dividir após</string>
+    <string name="plan_route_add_new_segment">Adicionar um novo segmento</string>
+    <string name="release_3_9">• Opção de exportar e importar todos os dados adicionada, que inclui configurações, recursos, meus lugares
+\n
+\n• Planear rota: gráficos para segmentos com a rota, adicionado a capacidade de criar e editar trilhos de segmentos múltiplos
+\n
+\n• Método de autenticação OAuth para OpenStreetMap adicionado, melhor IU dos diálogos OSM
+\n
+\n• Cores personalizadas para favoritos e pontos de rotas de trilhos
+\n
+\n</string>
 </resources>

@@ -92,6 +92,14 @@ public class ApplicationMode {
 			.icon(R.drawable.ic_action_pedestrian_dark)
 			.description(R.string.base_profile_descr_pedestrian).reg();
 
+	public static final ApplicationMode TRUCK = create(ApplicationMode.CAR, R.string.app_mode_truck, "truck")
+			.icon(R.drawable.ic_action_truck_dark)
+			.description(R.string.app_mode_truck).reg();
+
+	public static final ApplicationMode MOTORCYCLE = create(ApplicationMode.CAR, R.string.app_mode_motorcycle, "motorcycle")
+			.icon(R.drawable.ic_action_motorcycle_dark)
+			.description(R.string.app_mode_motorcycle).reg();
+
 	public static final ApplicationMode PUBLIC_TRANSPORT = createBase(R.string.app_mode_public_transport, "public_transport")
 			.icon(R.drawable.ic_action_bus_dark)
 			.description(R.string.base_profile_descr_public_transport).reg();
@@ -179,13 +187,13 @@ public class ApplicationMode {
 	}
 
 	private static void initRegVisibility() {
-		// DEFAULT, CAR, BICYCLE, PEDESTRIAN, PUBLIC_TRANSPORT, BOAT, AIRCRAFT, SKI
-		ApplicationMode[] exceptDefault = new ApplicationMode[] {CAR, BICYCLE, PEDESTRIAN, PUBLIC_TRANSPORT, BOAT, AIRCRAFT, SKI};
+		// DEFAULT, CAR, BICYCLE, PEDESTRIAN, PUBLIC_TRANSPORT, BOAT, AIRCRAFT, SKI, TRUCK
+		ApplicationMode[] exceptDefault = new ApplicationMode[] {CAR, BICYCLE, PEDESTRIAN, PUBLIC_TRANSPORT, BOAT, AIRCRAFT, SKI, TRUCK, MOTORCYCLE};
 		ApplicationMode[] all = null;
 		ApplicationMode[] none = new ApplicationMode[] {};
 
 		// left
-		ApplicationMode[] navigationSet1 = new ApplicationMode[] {CAR, BICYCLE, BOAT, SKI};
+		ApplicationMode[] navigationSet1 = new ApplicationMode[] {CAR, BICYCLE, BOAT, SKI, TRUCK, MOTORCYCLE};
 		ApplicationMode[] navigationSet2 = new ApplicationMode[] {PEDESTRIAN, PUBLIC_TRANSPORT, AIRCRAFT};
 
 		regWidgetVisibility(WIDGET_NEXT_TURN, navigationSet1);
@@ -200,8 +208,8 @@ public class ApplicationMode {
 		regWidgetVisibility(WIDGET_DISTANCE, all);
 		regWidgetVisibility(WIDGET_TIME, all);
 		regWidgetVisibility(WIDGET_INTERMEDIATE_TIME, all);
-		regWidgetVisibility(WIDGET_SPEED, CAR, BICYCLE, BOAT, SKI, PUBLIC_TRANSPORT, AIRCRAFT);
-		regWidgetVisibility(WIDGET_MAX_SPEED, CAR);
+		regWidgetVisibility(WIDGET_SPEED, CAR, BICYCLE, BOAT, SKI, PUBLIC_TRANSPORT, AIRCRAFT, TRUCK, MOTORCYCLE);
+		regWidgetVisibility(WIDGET_MAX_SPEED, CAR, TRUCK, MOTORCYCLE);
 		regWidgetVisibility(WIDGET_ALTITUDE, PEDESTRIAN, BICYCLE);
 		regWidgetAvailability(WIDGET_INTERMEDIATE_DISTANCE, all);
 		regWidgetAvailability(WIDGET_DISTANCE, all);
@@ -293,7 +301,7 @@ public class ApplicationMode {
 	}
 
 	public boolean isCustomProfile() {
-		return parentAppMode != null;
+		return !defaultValues.contains(this);
 	}
 
 	public boolean isDerivedRoutingFrom(ApplicationMode mode) {
@@ -365,13 +373,6 @@ public class ApplicationMode {
 		return (int) (7 + speed * 2);
 	}
 
-
-	public int getOffRouteDistance() {
-		// used to be: 50/14 - 350 m, 10/2.7 - 50 m, 4/1.11 - 20 m
-		float speed = Math.max(getDefaultSpeed(), 0.3f);
-		// become: 50 kmh - 280 m, 10 kmh - 55 m, 4 kmh - 22 m
-		return (int) (speed * 20);
-	}
 
 	public boolean hasFastSpeed() {
 		return getDefaultSpeed() > 10;
@@ -504,6 +505,14 @@ public class ApplicationMode {
 			mode.app = app;
 			mode.updateAppModeIcon();
 		}
+		if (app.getSettings().APP_MODE_ORDER.isSetForMode(PEDESTRIAN)) {
+			if (!app.getSettings().APP_MODE_ORDER.isSetForMode(TRUCK)) {
+				TRUCK.setOrder(PEDESTRIAN.getOrder() + 1);
+			}
+			if (!app.getSettings().APP_MODE_ORDER.isSetForMode(MOTORCYCLE)) {
+				MOTORCYCLE.setOrder(PEDESTRIAN.getOrder() + 1);
+			}
+		}
 	}
 
 	private static void initCustomModes(OsmandApplication app) {
@@ -598,7 +607,7 @@ public class ApplicationMode {
 		return gson.toJson(toModeBean());
 	}
 
-	public ApplicationModeBean toModeBean(){
+	public ApplicationModeBean toModeBean() {
 		ApplicationModeBean mb = new ApplicationModeBean();
 		mb.stringKey = stringKey;
 		mb.userProfileName = getUserProfileName();
@@ -786,6 +795,6 @@ public class ApplicationMode {
 		@Expose
 		public NavigationIcon navIcon = null;
 		@Expose
-		int order = -1;
+		public int order = -1;
 	}
 }

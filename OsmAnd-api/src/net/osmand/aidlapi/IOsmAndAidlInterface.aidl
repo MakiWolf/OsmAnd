@@ -77,6 +77,9 @@ import net.osmand.aidlapi.customization.OsmandSettingsInfoParams;
 import net.osmand.aidlapi.customization.CustomizationInfoParams;
 import net.osmand.aidlapi.customization.ProfileSettingsParams;
 import net.osmand.aidlapi.customization.MapMarginsParams;
+import net.osmand.aidlapi.customization.CustomPluginParams;
+import net.osmand.aidlapi.customization.SelectProfileParams;
+import net.osmand.aidlapi.customization.AProfile;
 
 import net.osmand.aidlapi.gpx.AGpxFile;
 import net.osmand.aidlapi.gpx.AGpxFileDetails;
@@ -89,6 +92,9 @@ import net.osmand.aidlapi.copyfile.CopyFileParams;
 
 import net.osmand.aidlapi.navigation.ANavigationUpdateParams;
 import net.osmand.aidlapi.navigation.ANavigationVoiceRouterMessageParams;
+import net.osmand.aidlapi.navigation.ABlockedRoad;
+import net.osmand.aidlapi.navigation.AddBlockedRoadParams;
+import net.osmand.aidlapi.navigation.RemoveBlockedRoadParams;
 
 import net.osmand.aidlapi.contextmenu.ContextMenuButtonsParams;
 import net.osmand.aidlapi.contextmenu.UpdateContextMenuButtonsParams;
@@ -883,4 +889,16 @@ interface IOsmAndAidlInterface {
     * Is contect menu open.
     */
     boolean isMenuOpen();
+
+    int getPluginVersion(in CustomPluginParams params);
+
+    boolean selectProfile(in SelectProfileParams params);
+
+    boolean getProfiles(out List<AProfile> profiles);
+
+    boolean getBlockedRoads(out List<ABlockedRoad> blockedRoads);
+
+    boolean addRoadBlock(in AddBlockedRoadParams params);
+
+    boolean removeRoadBlock(in RemoveBlockedRoadParams params);
 }

@@ -358,7 +358,7 @@ POIの更新は利用できません</string>
     <string name="finished_task">終了</string>
     <string name="use_online_routing_descr">ルート計算にインターネットを使用します</string>
     <string name="use_online_routing">オンラインルーティングを使用</string>
-    <string name="user_password">OSM パスワード</string>
+    <string name="user_password">パスワード</string>
     <string name="osm_settings_descr">Openstreetmap.org (OSM)にデータを提出する際に必要な項目の設定をおこないます。</string>
     <string name="data_settings_descr">言語、データのダウンロード/リロードを指定します</string>
     <string name="data_settings">データ</string>
@@ -877,7 +877,7 @@ POIの更新は利用できません</string>
     <string name="use_fluorescent_overlays">蛍光色の重ね表示</string>
     <string name="use_fluorescent_overlays_descr">経路とルートを表示する際に、蛍光色を使用します</string>
     <string name="offline_edition">オフライン編集</string>
-    <string name="offline_edition_descr">常にオフライン編集を使用します</string>
+    <string name="offline_edition_descr">オフライン編集が有効になっている場合、変更は最初にローカルに保存され、リクエストに応じてアップロードされます。有効になっていない場合、変更は即アップロードされます。</string>
     <string name="update_poi_does_not_change_indexes">アプリケーション内部POIの変更はローカルファイルに保存され、ダウンロードしたマップファイルには影響しません。</string>
     <string name="local_openstreetmap_uploading">アップロード中…</string>
     <string name="local_openstreetmap_were_uploaded">{0} POI/メモはアップロードされました</string>
@@ -1201,7 +1201,8 @@ POIの更新は利用できません</string>
     <string name="gpx_selection_point">地点 %1$s</string>
     <string name="gpx_selection_route_points">%1$s ↵\nルート地点 %2$s</string>
     <string name="gpx_selection_points">%1$s ↵\n地点</string>
-    <string name="gpx_selection_track">%1$s ↵\n経路 %2$s</string>
+    <string name="gpx_selection_track">%1$s↵
+\n経路 %2$s</string>
     <string name="gpx_file_is_empty">GPSトラックは空です</string>
     <string name="shared_string_tracks">使用した経路</string>
     <string name="shared_string_my_favorites">お気に入り</string>
@@ -3443,9 +3444,9 @@ POIの更新は利用できません</string>
     <string name="route_recalculation">ルート再計算</string>
     <string name="accessibility_announce">案内</string>
     <string name="login_and_pass">ユーザー名とパスワード</string>
-    <string name="plugin_global_prefs_info">以下設定はすべてのプロファイル共通で使用されます。</string>
+    <string name="plugin_global_prefs_info">これらの設定はアプリ全般に関するもので、すべてのプロファイルに適用されます</string>
     <string name="osm_editing">OSM編集</string>
-    <string name="osm_edits_view_descr">%1$sにまだアップロードされていない編集内容やOSMバグを表示します。アップロード後には表示されなくなります。</string>
+    <string name="osm_edits_view_descr">まだアップロードしていない編集やOSMバグを%1$sで表示できます。アップロードされた後にはOsmAndに表示されません。</string>
     <string name="app_mode_osm">OSM</string>
     <string name="select_nav_icon_descr">ナビゲーションまたは移動中に表示されるアイコンです。</string>
     <string name="select_map_icon_descr">静止時に表示されるアイコンです。</string>
@@ -3716,7 +3717,7 @@ POIの更新は利用できません</string>
     <string name="turn_screen_on_navigation_instructions">ナビゲーション指示</string>
     <string name="turn_screen_on_power_button_descr">端末の電源ボタンを押すと、画面がオンになり、ロック画面上にOsmAndが表示されます。</string>
     <string name="turn_screen_on_power_button">電源ボタン</string>
-    <string name="use_volume_buttons_as_zoom_descr">端末の音量ボタンでマップのズームレベルを変更できるようにします。</string>
+    <string name="use_volume_buttons_as_zoom_descr">端末の音量ボタンで、マップのズームレベルを変更します。</string>
     <string name="use_volume_buttons_as_zoom">音量ボタンでズーム</string>
     <string name="track_show_start_finish_icons">出発地点と目的地アイコンを表示</string>
     <string name="select_track_width">幅の選択</string>
@@ -3745,13 +3746,13 @@ POIの更新は利用できません</string>
     <string name="navigation_profile">ナビゲーションプロファイル</string>
     <string name="route_between_points_add_track_desc">新しいセグメントを追加するための経路ファイルを選択します。</string>
     <string name="street_level_imagery">ストリート画像</string>
-    <string name="plan_route_exit_dialog_descr">保存せずにルート計画を終了した場合すべての変更が失われます。よろしいですか？</string>
+    <string name="plan_route_exit_dialog_descr">このままルートの計画を終了した場合、すべての変更が失われますがよろしいですか？</string>
     <string name="app_mode_enduro_motorcycle">エンデューロバイク</string>
     <string name="app_mode_motor_scooter">電動スクーター</string>
     <string name="app_mode_wheelchair">車椅子</string>
     <string name="app_mode_go_cart">ゴーカート</string>
     <string name="osm_edit_closed_note">OSMのメモを閉じました</string>
-    <string name="set_working_days_to_continue">続けるには営業日を設定する必要があります</string>
+    <string name="set_working_days_to_continue">続行するには営業日を設定する必要があります</string>
     <string name="route_between_points">地点間のルート</string>
     <string name="plan_a_route">ルートを計画</string>
     <string name="add_to_a_track">経路に追加</string>
@@ -3788,7 +3789,7 @@ POIの更新は利用できません</string>
     <string name="shared_string_delete_all_q">全て削除しますか？</string>
     <string name="delete_all_actions_message_q">%d個のクイックアクションを完全に削除してもよろしいですか？</string>
     <string name="uninstall_speed_cameras">スピードカメラデータの削除</string>
-    <string name="shared_string_legal">法的</string>
+    <string name="shared_string_legal">法的事項</string>
     <string name="speed_camera_pois">スピードカメラPOI</string>
     <string name="speed_cameras_legal_descr">一部の国や地域では、スピードカメラ警告機能の使用が法律で禁止されています。
 \n
@@ -3914,4 +3915,40 @@ POIの更新は利用できません</string>
     <string name="complex_routing_descr">カーナビゲーション向けの2段階ルート計算です。</string>
     <string name="use_two_phase_routing">2段階 A*ルーティングアルゴリズムを使用</string>
     <string name="file_already_imported">ファイルはすでにOsmAndにインポートされています</string>
+    <string name="icon_group_amenity">店舗・施設</string>
+    <string name="shared_string_local_maps">ローカルマップ</string>
+    <string name="ltr_or_rtl_combine_via_dash">%1$s — %2$s</string>
+    <string name="icon_group_special">特別</string>
+    <string name="icon_group_transport">交通</string>
+    <string name="icon_group_service">設備・技術</string>
+    <string name="icon_group_symbols">記号</string>
+    <string name="icon_group_sport">スポーツ</string>
+    <string name="icon_group_emergency">緊急</string>
+    <string name="icon_group_travel">旅行</string>
+    <string name="message_you_need_add_two_points_to_show_graphs">少なくとも2つの地点を追加する必要があります</string>
+    <string name="login_open_street_map">OpenStreetMapにログイン</string>
+    <string name="login_open_street_map_org">OpenStreetMap.orgにログイン</string>
+    <string name="sign_in_with_open_street_map">OpenStreetMapにOAuthログイン</string>
+    <string name="open_street_map_login_mode">変更をアップロードするには、ログインする必要があります。
+\n
+\n安全なOAuth方式を使用してログイン、または通常のユーザー名とパスワード方式が選択できます。</string>
+    <string name="use_login_password">ユーザー名とパスワードを使用する</string>
+    <string name="user_login">ログイン</string>
+    <string name="manage_subscription">サブスクリプションの管理</string>
+    <string name="subscription_payment_issue_title">サブスクリプションに際し問題が発生しています。ボタンをタップしてGooglePlayサブスクリプション設定に移動し、お支払い方法を確認してください。</string>
+    <string name="subscription_expired_title">OsmAndLiveサブスクリプションの有効期限が切れました</string>
+    <string name="subscription_paused_title">OsmAndLiveサブスクリプションが一時停止されました</string>
+    <string name="subscription_on_hold_title">OsmAndLiveサブスクリプションは保留中です</string>
+    <string name="markers_history">マーカーの履歴</string>
+    <string name="send_files_to_openstreetmap">GPXファイルをOpenStreetMapに送信</string>
+    <string name="enter_text_separated">タグはカンマで区切って入力してください。</string>
+    <string name="gpx_upload_public_visibility_descr">パブリック状態は、経路がGPS経路およびGPS経路リストに公開を目的として表示されることを示唆しています。 APIを介して提供されるデータは、経路ページを参照していません。経路ポイントのタイムスタンプは、パブリックGPS APIからは入手できず、各地点は時系列で並べられることはありません。ただし他のユーザーは、公開経路リストとその中のタイムスタンプから生の経路データをダウンロードすることができます。</string>
+    <string name="gpx_upload_identifiable_visibility_descr">識別可能状態は、経路がGPS経路およびパブリックGPS経路リストに表示されることを示唆しています。他のユーザーは現在の経路をダウンロードして、ユーザー名とリンクできます。 trackpoints APIを介して配信されるデータは、元の経路追跡ページを参照します。経路ポイントのタイムスタンプは、パブリックGPSAPIを介して入手できます。</string>
+    <string name="gpx_upload_private_visibility_descr">プライベート状態は、経路がパブリックリストに表示されないことを示唆しています。経路ポイントは、タイムスタンプなしでパブリックGPS APIを介して引き続き利用できますが、時系列で並べられることはありません。</string>
+    <string name="gpx_upload_trackable_visibility_descr">追跡可能状態にある場合は経路が公開リストに表示されないことを示唆していますが、経路ポイントは自体はタイムスタンプ付きの公開GPSAPIを介して引き続き利用できます。他のユーザーからはあなたに直接関連付けることはできず、自身の処理済み経路ポイントのみをダウンロードできます。</string>
+    <string name="login_account">アカウント</string>
+    <string name="message_graph_will_be_available_after_recalculation">ルートが再計算されるのを待ちます。
+\nグラフは再計算後に利用できるようになります。</string>
+    <string name="use_dev_url_descr">OSM通知/ POI / GPXのアップロードをテストする場合、openstreetmap.orgではなくdev.openstreetmap.orgを使用するよう切り替えます。</string>
+    <string name="use_dev_url">dev.openstreetmap.orgを使用</string>
 </resources>

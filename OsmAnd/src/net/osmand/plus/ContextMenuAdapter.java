@@ -208,7 +208,7 @@ public class ContextMenuAdapter {
 		}
 		items.removeAll(itemsToRemove);
 		return new ContextMenuArrayAdapter(activity, layoutId, R.id.title,
-				items.toArray(new ContextMenuItem[items.size()]), app, lightTheme, changeAppModeListener);
+				items.toArray(new ContextMenuItem[0]), app, lightTheme, changeAppModeListener);
 	}
 
 	public class ContextMenuArrayAdapter extends ArrayAdapter<ContextMenuItem> {
@@ -258,7 +258,7 @@ public class ContextMenuAdapter {
 							@Override
 							public void onClick(View view) {
 								if (selected.size() > 0) {
-									app.getSettings().APPLICATION_MODE.set(selected.iterator().next());
+									app.getSettings().setApplicationMode(selected.iterator().next());
 									notifyDataSetChanged();
 								}
 								if (changeAppModeListener != null) {
@@ -643,7 +643,7 @@ public class ContextMenuAdapter {
 	}
 
 	public static OnItemDeleteAction makeDeleteAction(final List<? extends OsmandPreference> prefs) {
-		return makeDeleteAction(prefs.toArray(new OsmandPreference[prefs.size()]));
+		return makeDeleteAction(prefs.toArray(new OsmandPreference[0]));
 	}
 
 	private static void resetSetting(ApplicationMode appMode, OsmandPreference preference, boolean profileOnly) {

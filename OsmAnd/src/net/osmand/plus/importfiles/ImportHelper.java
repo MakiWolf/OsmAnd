@@ -34,6 +34,7 @@ import net.osmand.plus.dialogs.ImportGpxBottomSheetDialogFragment;
 import net.osmand.plus.helpers.GpxUiHelper;
 import net.osmand.plus.helpers.GpxUiHelper.GPXInfo;
 import net.osmand.plus.measurementtool.MeasurementToolFragment;
+import net.osmand.plus.settings.backend.ExportSettingsType;
 import net.osmand.plus.settings.backend.backup.SettingsHelper;
 import net.osmand.plus.settings.backend.backup.SettingsItem;
 import net.osmand.plus.views.OsmandMapTileView;
@@ -67,6 +68,9 @@ import static net.osmand.IndexConstants.WPT_CHART_FILE_EXT;
 import static net.osmand.data.FavouritePoint.DEFAULT_BACKGROUND_TYPE;
 import static net.osmand.plus.myplaces.FavoritesActivity.GPX_TAB;
 import static net.osmand.plus.myplaces.FavoritesActivity.TAB_ID;
+import static net.osmand.plus.settings.backend.backup.SettingsHelper.REPLACE_KEY;
+import static net.osmand.plus.settings.backend.backup.SettingsHelper.SETTINGS_TYPE_LIST_KEY;
+import static net.osmand.plus.settings.backend.backup.SettingsHelper.SILENT_IMPORT_KEY;
 
 /**
  * @author Koen Rabaey
@@ -203,6 +207,7 @@ public class ImportHelper {
 		}
 	}
 
+	@Nullable
 	public static String getNameFromContentUri(OsmandApplication app, Uri contentUri) {
 		try {
 			String name;
@@ -257,18 +262,33 @@ public class ImportHelper {
 	}
 
 	private void handleOsmAndSettingsImport(Uri intentUri, String fileName, Bundle extras, CallbackWithObject<List<SettingsItem>> callback) {
-		if (extras != null && extras.containsKey(SettingsHelper.SETTINGS_VERSION_KEY) && extras.containsKey(SettingsHelper.SETTINGS_LATEST_CHANGES_KEY)) {
+		if (extras != null
+				&& extras.containsKey(SettingsHelper.SETTINGS_VERSION_KEY)
+				&& extras.containsKey(SettingsHelper.SETTINGS_LATEST_CHANGES_KEY)) {
 			int version = extras.getInt(SettingsHelper.SETTINGS_VERSION_KEY, -1);
 			String latestChanges = extras.getString(SettingsHelper.SETTINGS_LATEST_CHANGES_KEY);
-			handleOsmAndSettingsImport(intentUri, fileName, latestChanges, version, callback);
+			boolean replace = extras.getBoolean(REPLACE_KEY);
+			boolean silentImport = extras.getBoolean(SILENT_IMPORT_KEY);
+			ArrayList<String> settingsTypeKeys = extras.getStringArrayList(SETTINGS_TYPE_LIST_KEY);
+			List<ExportSettingsType> settingsTypes = null;
+			if (settingsTypeKeys != null) {
+				settingsTypes = new ArrayList<>();
+				for (String key : settingsTypeKeys) {
+					settingsTypes.add(ExportSettingsType.valueOf(key));
+				}
+			}
+			handleOsmAndSettingsImport(intentUri, fileName, settingsTypes, replace, silentImport, latestChanges, version, callback);
 		} else {
-			handleOsmAndSettingsImport(intentUri, fileName, null, -1, callback);
+			handleOsmAndSettingsImport(intentUri, fileName, null, false, false, null, -1,
+					callback);
 		}
 	}
 
-	protected void handleOsmAndSettingsImport(Uri uri, String name, String latestChanges, int version,
+	protected void handleOsmAndSettingsImport(Uri uri, String name, final List<ExportSettingsType> settingsTypes,
+											  final boolean replace, boolean silentImport, String latestChanges, int version,
 											  CallbackWithObject<List<SettingsItem>> callback) {
-		executeImportTask(new SettingsImportTask(activity, uri, name, latestChanges, version, callback));
+		executeImportTask(new SettingsImportTask(activity, uri, name, settingsTypes, replace, silentImport,
+				latestChanges, version, callback));
 	}
 
 	protected void handleXmlFileImport(Uri intentUri, String fileName, CallbackWithObject routingCallback) {
@@ -513,10 +533,9 @@ public class ImportHelper {
 
 	private File getFileToSave(final String fileName, final File importDir, final WptPt pt) {
 		final StringBuilder builder = new StringBuilder(fileName);
-		if ("".equals(fileName)) {
+		if (Algorithms.isEmpty(fileName)) {
 			builder.append("import_").append(new SimpleDateFormat("HH-mm_EEE", Locale.US).format(new Date(pt.time))).append(GPX_FILE_EXT); //$NON-NLS-1$
-		}
-		if (fileName.endsWith(KML_SUFFIX)) {
+		} else if (fileName.endsWith(KML_SUFFIX)) {
 			builder.replace(builder.length() - KML_SUFFIX.length(), builder.length(), GPX_FILE_EXT);
 		} else if (fileName.endsWith(KMZ_SUFFIX)) {
 			builder.replace(builder.length() - KMZ_SUFFIX.length(), builder.length(), GPX_FILE_EXT);

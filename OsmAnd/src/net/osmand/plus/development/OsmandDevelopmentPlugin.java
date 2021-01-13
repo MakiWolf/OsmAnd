@@ -37,7 +37,7 @@ public class OsmandDevelopmentPlugin extends OsmandPlugin {
 	}
 
 	@Override
-	public String getDescription() {
+	public CharSequence getDescription() {
 		return app.getString(R.string.osmand_development_plugin_description);
 	}
 
@@ -139,5 +139,14 @@ public class OsmandDevelopmentPlugin extends OsmandPlugin {
 	@Override
 	public DashFragmentData getCardFragment() {
 		return DashSimulateFragment.FRAGMENT_DATA;
+	}
+
+	@Override
+	public void disable(OsmandApplication app) {
+		if (app.getSettings().USE_DEV_URL.get()) {
+			app.getSettings().USE_DEV_URL.set(false);
+			app.getOsmOAuthHelper().resetAuthorization();
+		}
+		super.disable(app);
 	}
 }

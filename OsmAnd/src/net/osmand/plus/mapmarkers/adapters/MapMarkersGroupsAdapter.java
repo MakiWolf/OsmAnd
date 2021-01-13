@@ -21,11 +21,12 @@ import net.osmand.IndexConstants;
 import net.osmand.data.LatLon;
 import net.osmand.plus.GpxSelectionHelper;
 import net.osmand.plus.GpxSelectionHelper.SelectedGpxFile;
-import net.osmand.plus.MapMarkersHelper;
-import net.osmand.plus.MapMarkersHelper.GroupHeader;
-import net.osmand.plus.MapMarkersHelper.MapMarker;
-import net.osmand.plus.MapMarkersHelper.MapMarkersGroup;
-import net.osmand.plus.MapMarkersHelper.ShowHideHistoryButton;
+import net.osmand.plus.mapmarkers.CategoriesSubHeader;
+import net.osmand.plus.mapmarkers.MapMarkersHelper;
+import net.osmand.plus.mapmarkers.GroupHeader;
+import net.osmand.plus.mapmarkers.MapMarker;
+import net.osmand.plus.mapmarkers.MapMarkersGroup;
+import net.osmand.plus.mapmarkers.ShowHideHistoryButton;
 import net.osmand.plus.OsmAndFormatter;
 import net.osmand.plus.OsmandApplication;
 import net.osmand.plus.R;
@@ -35,7 +36,7 @@ import net.osmand.plus.activities.MapActivity;
 import net.osmand.plus.mapmarkers.SelectWptCategoriesBottomSheetDialogFragment;
 import net.osmand.plus.wikivoyage.article.WikivoyageArticleDialogFragment;
 import net.osmand.plus.wikivoyage.data.TravelArticle;
-import net.osmand.plus.wikivoyage.data.TravelDbHelper;
+import net.osmand.plus.wikivoyage.data.TravelHelper;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -159,14 +160,14 @@ public class MapMarkersGroupsAdapter extends RecyclerView.Adapter<RecyclerView.V
 				items.add(header);
 				if (!group.isDisabled()) {
 					if (group.getWptCategories() != null && !group.getWptCategories().isEmpty()) {
-						MapMarkersHelper.CategoriesSubHeader categoriesSubHeader = group.getCategoriesSubHeader();
+						CategoriesSubHeader categoriesSubHeader = group.getCategoriesSubHeader();
 						items.add(categoriesSubHeader);
 					}
-					TravelDbHelper travelDbHelper = mapActivity.getMyApplication().getTravelDbHelper();
-					if (travelDbHelper.getSelectedTravelBook() != null) {
-						List<TravelArticle> savedArticles = travelDbHelper.getLocalDataHelper().getSavedArticles();
+					TravelHelper travelHelper = mapActivity.getMyApplication().getTravelHelper();
+					if (travelHelper.isAnyTravelBookPresent()) {
+						List<TravelArticle> savedArticles = travelHelper.getBookmarksHelper().getSavedArticles();
 						for (TravelArticle art : savedArticles) {
-							String gpxName = travelDbHelper.getGPXName(art);
+							String gpxName = travelHelper.getGPXName(art);
 							File path = mapActivity.getMyApplication().getAppPath(IndexConstants.GPX_TRAVEL_DIR + gpxName);
 							if (path.getAbsolutePath().equals(group.getGpxPath())) {
 								group.setWikivoyageArticle(art);
@@ -402,7 +403,7 @@ public class MapMarkersGroupsAdapter extends RecyclerView.Adapter<RecyclerView.V
 				final GroupHeader groupHeader = (GroupHeader) header;
 				final MapMarkersGroup group = groupHeader.getGroup();
 				String groupName = group.getName();
-				if (groupName.equals("")) {
+				if (groupName.isEmpty()) {
 					groupName = app.getString(R.string.shared_string_favorites);
 				} else if (group.getType() == MapMarkersGroup.GPX_TYPE) {
 					groupName = groupName.replace(IndexConstants.GPX_FILE_EXT, "").replace("/", " ").replace("_", " ");
@@ -426,7 +427,7 @@ public class MapMarkersGroupsAdapter extends RecyclerView.Adapter<RecyclerView.V
 						@Override
 						public void onClick(View v) {
 							if (mapActivity.getSupportFragmentManager() != null) {
-								WikivoyageArticleDialogFragment.showInstance(app, mapActivity.getSupportFragmentManager(), article.getTitle(), article.getLang());
+								WikivoyageArticleDialogFragment.showInstance(app, mapActivity.getSupportFragmentManager(), article.generateIdentifier(), article.getLang());
 							}
 						}
 					};
@@ -526,8 +527,8 @@ public class MapMarkersGroupsAdapter extends RecyclerView.Adapter<RecyclerView.V
 		} else if (holder instanceof MapMarkerCategoriesViewHolder) {
 			final MapMarkerCategoriesViewHolder categoriesViewHolder = (MapMarkerCategoriesViewHolder) holder;
 			final Object header = getItem(position);
-			if (header instanceof MapMarkersHelper.CategoriesSubHeader) {
-				final MapMarkersHelper.CategoriesSubHeader categoriesSubHeader = (MapMarkersHelper.CategoriesSubHeader) header;
+			if (header instanceof CategoriesSubHeader) {
+				final CategoriesSubHeader categoriesSubHeader = (CategoriesSubHeader) header;
 				final MapMarkersGroup group = categoriesSubHeader.getGroup();
 				View.OnClickListener openChooseCategoriesDialog = new View.OnClickListener() {
 					@Override
@@ -578,7 +579,7 @@ public class MapMarkersGroupsAdapter extends RecyclerView.Adapter<RecyclerView.V
 			Iterator<String> it = categories.iterator();
 			while (it.hasNext()) {
 				String category = it.next();
-				if (category.equals("")) {
+				if (category.isEmpty()) {
 					category = app.getResources().getString(R.string.shared_string_waypoints);
 				}
 				sb.append(category);
@@ -599,7 +600,7 @@ public class MapMarkersGroupsAdapter extends RecyclerView.Adapter<RecyclerView.V
 			return HEADER_TYPE;
 		} else if (item instanceof ShowHideHistoryButton) {
 			return SHOW_HIDE_HISTORY_TYPE;
-		} else if (item instanceof MapMarkersHelper.CategoriesSubHeader) {
+		} else if (item instanceof CategoriesSubHeader) {
 			return CATEGORIES_TYPE;
 		} else {
 			throw new IllegalArgumentException("Unsupported view type");

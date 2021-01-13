@@ -40,6 +40,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import net.osmand.AndroidUtils;
 import net.osmand.IndexConstants;
 import net.osmand.PlatformUtil;
+import net.osmand.plus.activities.MapActivity;
 import net.osmand.plus.settings.backend.ApplicationMode;
 import net.osmand.plus.R;
 import net.osmand.plus.settings.backend.backup.ProfileSettingsItem;
@@ -50,7 +51,9 @@ import net.osmand.plus.profiles.LocationIcon;
 import net.osmand.plus.profiles.NavigationIcon;
 import net.osmand.plus.profiles.ProfileIconColors;
 import net.osmand.plus.profiles.ProfileIcons;
-import net.osmand.plus.profiles.SelectProfileBottomSheetDialogFragment;
+import net.osmand.plus.profiles.SelectProfileBottomSheet;
+import net.osmand.plus.profiles.SelectProfileBottomSheet.DialogMode;
+import net.osmand.plus.profiles.SelectProfileBottomSheet.OnSelectProfileCallback;
 import net.osmand.plus.routing.RouteProvider;
 import net.osmand.plus.widgets.FlowLayout;
 import net.osmand.plus.widgets.OsmandTextFieldBoxes;
@@ -63,13 +66,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 import static net.osmand.aidlapi.OsmAndCustomizationConstants.DRAWER_SETTINGS_ID;
-import static net.osmand.plus.profiles.SelectProfileBottomSheetDialogFragment.DIALOG_TYPE;
-import static net.osmand.plus.profiles.SelectProfileBottomSheetDialogFragment.IS_PROFILE_IMPORTED_ARG;
-import static net.osmand.plus.profiles.SelectProfileBottomSheetDialogFragment.PROFILE_KEY_ARG;
-import static net.osmand.plus.profiles.SelectProfileBottomSheetDialogFragment.SELECTED_KEY;
-import static net.osmand.plus.profiles.SelectProfileBottomSheetDialogFragment.TYPE_BASE_APP_PROFILE;
+import static net.osmand.plus.profiles.SelectProfileBottomSheet.PROFILES_LIST_UPDATED_ARG;
+import static net.osmand.plus.profiles.SelectProfileBottomSheet.PROFILE_KEY_ARG;
 
-public class ProfileAppearanceFragment extends BaseSettingsFragment {
+public class ProfileAppearanceFragment extends BaseSettingsFragment implements OnSelectProfileCallback {
 
 	private static final Log LOG = PlatformUtil.getLog(ProfileAppearanceFragment.class);
 
@@ -97,7 +97,6 @@ public class ProfileAppearanceFragment extends BaseSettingsFragment {
 	private static final String IS_BASE_PROFILE_IMPORTED = "is_base_profile_imported";
 	private static final String IS_NEW_PROFILE_KEY = "is_new_profile_key";
 
-	private SelectProfileBottomSheetDialogFragment.SelectProfileListener parentProfileListener;
 	private SettingsHelper.SettingsExportListener exportListener;
 
 	private ProgressDialog progress;
@@ -392,25 +391,19 @@ public class ProfileAppearanceFragment extends BaseSettingsFragment {
 					? changedProfile.parent.toHumanString()
 					: getSelectedAppMode().toHumanString());
 			OsmandTextFieldBoxes baseProfileNameHint = (OsmandTextFieldBoxes) holder.findViewById(R.id.master_profile_otfb);
-			baseProfileNameHint.setLabelText(getString(R.string.profile_type_base_string));
+			baseProfileNameHint.setLabelText(getString(R.string.profile_type_osmand_string));
 			FrameLayout selectNavTypeBtn = (FrameLayout) holder.findViewById(R.id.select_nav_type_btn);
 			selectNavTypeBtn.setOnClickListener(new View.OnClickListener() {
 				@Override
 				public void onClick(View v) {
 					if (isNewProfile) {
 						hideKeyboard();
-						final SelectProfileBottomSheetDialogFragment fragment = new SelectProfileBottomSheetDialogFragment();
-						Bundle bundle = new Bundle();
-						fragment.setUsedOnMap(false);
-						fragment.setAppMode(getSelectedAppMode());
-						if (changedProfile.parent != null) {
-							bundle.putString(SELECTED_KEY, changedProfile.parent.getStringKey());
-						}
-						bundle.putString(DIALOG_TYPE, TYPE_BASE_APP_PROFILE);
-						fragment.setArguments(bundle);
+						String selectedAppModeKey =
+								changedProfile.parent != null ? changedProfile.parent.getStringKey() : null;
 						if (getActivity() != null) {
-							getActivity().getSupportFragmentManager().beginTransaction()
-									.add(fragment, "select_nav_type").commitAllowingStateLoss();
+							SelectProfileBottomSheet.showInstance(
+									getActivity(), DialogMode.BASE_PROFILE, ProfileAppearanceFragment.this,
+									getSelectedAppMode(), selectedAppModeKey, false);
 						}
 					}
 				}
@@ -708,20 +701,6 @@ public class ProfileAppearanceFragment extends BaseSettingsFragment {
 		}
 	}
 
-	public SelectProfileBottomSheetDialogFragment.SelectProfileListener getParentProfileListener() {
-		if (parentProfileListener == null) {
-			parentProfileListener = new SelectProfileBottomSheetDialogFragment.SelectProfileListener() {
-				@Override
-				public void onSelectedType(Bundle args) {
-					String profileKey = args.getString(PROFILE_KEY_ARG);
-					boolean imported = args.getBoolean(IS_PROFILE_IMPORTED_ARG);
-					updateParentProfile(profileKey, imported);
-				}
-			};
-		}
-		return parentProfileListener;
-	}
-
 	private SettingsHelper.SettingsExportListener getSettingsExportListener() {
 		if (exportListener == null) {
 			exportListener = new SettingsHelper.SettingsExportListener() {
@@ -873,6 +852,10 @@ public class ProfileAppearanceFragment extends BaseSettingsFragment {
 	private void customProfileSaved() {
 		FragmentActivity activity = getActivity();
 		if (activity != null) {
+			if (activity instanceof MapActivity) {
+				((MapActivity) activity).getMapLayers().getMapWidgetRegistry().updateVisibleWidgets();
+				((MapActivity) activity).updateApplicationModeSettings();
+			}
 			FragmentManager fragmentManager = activity.getSupportFragmentManager();
 			if (!fragmentManager.isStateSaved()) {
 				fragmentManager.popBackStack();
@@ -897,7 +880,7 @@ public class ProfileAppearanceFragment extends BaseSettingsFragment {
 	}
 	
 	private boolean nameIsEmpty() {
-		return changedProfile.name.trim().equals("");
+		return changedProfile.name.trim().isEmpty();
 	}
 	
 	private void disableSaveButtonWithErrorMessage(String errorMessage) {
@@ -946,6 +929,13 @@ public class ProfileAppearanceFragment extends BaseSettingsFragment {
 				ApplicationMode.deleteCustomModes(Collections.singletonList(appMode), app);
 			}
 		}
+	}
+
+	@Override
+	public void onProfileSelected(Bundle args) {
+		String profileKey = args.getString(PROFILE_KEY_ARG);
+		boolean imported = args.getBoolean(PROFILES_LIST_UPDATED_ARG);
+		updateParentProfile(profileKey, imported);
 	}
 
 	public static boolean showInstance(FragmentActivity activity, SettingsScreenType screenType, @Nullable String appMode, boolean imported) {

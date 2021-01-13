@@ -8,9 +8,9 @@ import net.osmand.PlatformUtil;
 import net.osmand.data.LatLon;
 import net.osmand.map.OsmandRegions;
 import net.osmand.map.WorldRegion;
+import net.osmand.plus.CustomRegion;
 import net.osmand.plus.OsmandApplication;
 import net.osmand.plus.OsmandPlugin;
-import net.osmand.plus.CustomRegion;
 import net.osmand.plus.download.DownloadOsmandIndexesHelper.AssetIndexItem;
 import net.osmand.plus.inapp.InAppPurchaseHelper;
 import net.osmand.util.Algorithms;
@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -80,7 +81,7 @@ public class DownloadResources extends DownloadResourceGroup {
 		List<IndexItem> items = getWikivoyageItems();
 		if (items != null) {
 			for (IndexItem ii : items) {
-				if (ii.getFileName().equals(fileName)) {
+				if (ii.getTargetFile(app).getName().equals(fileName)) {
 					return ii;
 				}
 			}
@@ -130,14 +131,18 @@ public class DownloadResources extends DownloadResourceGroup {
 		java.text.DateFormat dateFormat = app.getResourceManager().getDateFormat();
 		Map<String, String> indexActivatedFileNames = app.getResourceManager().getIndexFileNames();
 		listWithAlternatives(dateFormat, app.getAppPath(""), IndexConstants.EXTRA_EXT, indexActivatedFileNames);
-		listWithAlternatives(dateFormat, app.getAppPath(IndexConstants.WIKIVOYAGE_INDEX_DIR), IndexConstants.BINARY_WIKIVOYAGE_MAP_INDEX_EXT, 
-				indexActivatedFileNames);
+		listWithAlternatives(dateFormat, app.getAppPath(IndexConstants.WIKIVOYAGE_INDEX_DIR),
+				IndexConstants.BINARY_WIKIVOYAGE_MAP_INDEX_EXT, indexActivatedFileNames);
+		listWithAlternatives(dateFormat, app.getAppPath(IndexConstants.WIKIVOYAGE_INDEX_DIR),
+				IndexConstants.BINARY_TRAVEL_GUIDE_MAP_INDEX_EXT, indexActivatedFileNames);
 		Map<String, String> indexFileNames = app.getResourceManager().getIndexFileNames();
 		listWithAlternatives(dateFormat, app.getAppPath(""), IndexConstants.EXTRA_EXT, indexFileNames);
 		listWithAlternatives(dateFormat, app.getAppPath(IndexConstants.TILES_INDEX_DIR), IndexConstants.SQLITE_EXT,
 				indexFileNames);
-		listWithAlternatives(dateFormat, app.getAppPath(IndexConstants.WIKIVOYAGE_INDEX_DIR), IndexConstants.BINARY_WIKIVOYAGE_MAP_INDEX_EXT, 
-				indexFileNames);
+		listWithAlternatives(dateFormat, app.getAppPath(IndexConstants.WIKIVOYAGE_INDEX_DIR),
+				IndexConstants.BINARY_WIKIVOYAGE_MAP_INDEX_EXT, indexFileNames);
+		listWithAlternatives(dateFormat, app.getAppPath(IndexConstants.WIKIVOYAGE_INDEX_DIR),
+				IndexConstants.BINARY_TRAVEL_GUIDE_MAP_INDEX_EXT, indexFileNames);
 		app.getResourceManager().getBackupIndexes(indexFileNames);
 		this.indexFileNames = indexFileNames;
 		this.indexActivatedFileNames = indexActivatedFileNames;
@@ -173,22 +178,22 @@ public class DownloadResources extends DownloadResourceGroup {
 			}
 		}
 		if (date != null && !date.equals(indexActivatedDate) && !date.equals(indexFilesDate)) {
+			long oldItemSize = 0;
+			long itemSize = item.getContentSize();
 			if ((item.getType() == DownloadActivityType.NORMAL_FILE && !item.extra)
 					|| item.getType() == DownloadActivityType.ROADS_FILE
 					|| item.getType() == DownloadActivityType.WIKIPEDIA_FILE
 					|| item.getType() == DownloadActivityType.DEPTH_CONTOUR_FILE
 					|| item.getType() == DownloadActivityType.SRTM_COUNTRY_FILE) {
 				outdated = true;
-			} else if(item.getType() == DownloadActivityType.WIKIVOYAGE_FILE) {
-				long itemSize = item.getContentSize();
-				long oldItemSize = app.getAppPath(IndexConstants.WIKIVOYAGE_INDEX_DIR +
+			} else if (item.getType() == DownloadActivityType.WIKIVOYAGE_FILE
+					|| item.getType() == DownloadActivityType.TRAVEL_FILE) {
+				oldItemSize = app.getAppPath(IndexConstants.WIKIVOYAGE_INDEX_DIR +
 						item.getTargetFileName()).length();
 				if (itemSize != oldItemSize) {
 					outdated = true;
 				}
 			} else {
-				long itemSize = item.getContentSize();
-				long oldItemSize = 0;
 				if (parsed && item.getTimestamp() > item.getLocalTimestamp()) {
 					outdated = true;
 				} else if (item.getType() == DownloadActivityType.VOICE_FILE) {
@@ -218,12 +223,23 @@ public class DownloadResources extends DownloadResourceGroup {
 					outdated = true;
 				}
 			}
+			if (outdated) {
+				logItemUpdateInfo(item, format, itemSize, oldItemSize);
+			}
 		}
 		item.setOutdated(outdated);
 		return outdated;
 	}
 
-	
+	private void logItemUpdateInfo(IndexItem item, DateFormat format, long itemSize, long oldItemSize) {
+		String date = item.getDate(format);
+		String sfName = item.getTargetFileName();
+		String indexActivatedDate = indexActivatedFileNames.get(sfName);
+		String indexFilesDate = indexFileNames.get(sfName);
+		LOG.info("name " + item.getFileName() + " timestamp " + item.timestamp + " localTimestamp " + item.localTimestamp + " date " + date
+				+ " indexActivatedDate " + indexActivatedDate + " indexFilesDate " + indexFilesDate
+				+ " itemSize " + itemSize + " oldItemSize " + oldItemSize);
+	}
 
 	protected void updateFilesToUpdate() {
 		initAlreadyLoadedFiles();
@@ -343,7 +359,11 @@ public class DownloadResources extends DownloadResourceGroup {
 				}
 				continue;
 			}
-			if(ii.getType() == DownloadActivityType.WIKIVOYAGE_FILE) {
+			if (ii.getType() == DownloadActivityType.WIKIVOYAGE_FILE) {
+				wikivoyageMaps.addItem(ii);
+				continue;
+			}
+			if (ii.getType() == DownloadActivityType.TRAVEL_FILE) {
 				wikivoyageMaps.addItem(ii);
 				continue;
 			}

@@ -40,15 +40,6 @@ android {
 			keyAlias "osmand"
 			keyPassword System.getenv("OSMAND_APK_PASSWORD")
 		}
-
-		publishingHuawei {
-			storeFile file("/var/lib/jenkins/osmand_hw_key")
-			storePassword System.getenv("OSMAND_HW_APK_PASSWORD")
-			keyAlias "osmand"
-			keyPassword System.getenv("OSMAND_HW_APK_PASSWORD")
-			v1SigningEnabled true
-			v2SigningEnabled true
-		}
 	}
 
 	defaultConfig {
@@ -206,18 +197,10 @@ android {
 
 	buildTypes {
 		debug {
-			buildConfigField "String", "OSM_OAUTH_CONSUMER_KEY", "\"Ti2qq3fo4i4Wmuox3SiWRIGq3obZisBHnxmcM05y\""
-			buildConfigField "String", "OSM_OAUTH_CONSUMER_SECRET", "\"lxulb3HYoMmd2cC4xxNe1dyfRMAY8dS0eNihJ0DM\""
 			signingConfig signingConfigs.development
 		}
 		release {
-			buildConfigField "String", "OSM_OAUTH_CONSUMER_KEY", "\"Ti2qq3fo4i4Wmuox3SiWRIGq3obZisBHnxmcM05y\""
-			buildConfigField "String", "OSM_OAUTH_CONSUMER_SECRET", "\"lxulb3HYoMmd2cC4xxNe1dyfRMAY8dS0eNihJ0DM\""
-			if (gradle.startParameter.taskNames.toString().contains("huawei")) {
-				signingConfig signingConfigs.publishingHuawei
-			} else {
-				signingConfig signingConfigs.publishing
-			}
+			signingConfig signingConfigs.publishing
 		}
 	}
 
@@ -304,14 +287,13 @@ task collectHelpContentsAssets(type: Copy) {
 		include "about.html"
 		include "changes.html"
 		include "faq.html"
-		include "technical-articles.html"
 		include "map-legend.html"
 	}
 	from("../../help/website/feature_articles") {
 		include "*.html"
 	}
 	from("../../help/website/blog_articles") {
-		include "osmand-3-8-released.html"
+		include "osmand-3-9-released.html"
 	}
 	into "assets/feature_articles"
 }
@@ -524,4 +506,6 @@ dependencies {
 	implementation 'com.jaredrummler:colorpicker:1.1.0'
 
 	freehuaweiImplementation 'com.huawei.hms:iap:5.0.2.300'
+
+	implementation "org.bouncycastle:bcpkix-jdk15on:1.56"
 }

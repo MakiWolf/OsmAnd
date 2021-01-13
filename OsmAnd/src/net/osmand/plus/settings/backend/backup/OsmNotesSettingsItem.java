@@ -22,7 +22,6 @@ import java.util.List;
 
 public class OsmNotesSettingsItem extends CollectionSettingsItem<OsmNotesPoint> {
 
-	public static final String ID_KEY = "id";
 	public static final String TEXT_KEY = "text";
 	public static final String LAT_KEY = "lat";
 	public static final String LON_KEY = "lon";
@@ -63,12 +62,20 @@ public class OsmNotesSettingsItem extends CollectionSettingsItem<OsmNotesPoint> 
 		if (!newItems.isEmpty() || !duplicateItems.isEmpty()) {
 			appliedItems = new ArrayList<>(newItems);
 
-			for (OsmNotesPoint duplicate : duplicateItems) {
-				appliedItems.add(shouldReplace ? duplicate : renameItem(duplicate));
-			}
 			OsmEditingPlugin osmEditingPlugin = OsmandPlugin.getPlugin(OsmEditingPlugin.class);
 			if (osmEditingPlugin != null) {
 				OsmBugsDbHelper db = osmEditingPlugin.getDBBug();
+				for (OsmNotesPoint duplicate : duplicateItems) {
+					int ind = existingItems.indexOf(duplicate);
+					if (ind != -1 && ind < existingItems.size()) {
+						OsmNotesPoint original = existingItems.get(ind);
+						if (original != null) {
+							db.deleteAllBugModifications(original);
+						}
+						db.addOsmbugs(duplicate);
+					}
+				}
+
 				for (OsmNotesPoint point : appliedItems) {
 					db.addOsmbugs(point);
 				}
@@ -78,7 +85,7 @@ public class OsmNotesSettingsItem extends CollectionSettingsItem<OsmNotesPoint> 
 
 	@Override
 	public boolean isDuplicate(@NonNull OsmNotesPoint item) {
-		return false;
+		return existingItems.contains(item);
 	}
 
 	@NonNull
@@ -100,8 +107,8 @@ public class OsmNotesSettingsItem extends CollectionSettingsItem<OsmNotesPoint> 
 	}
 
 	@Override
-	public boolean shouldReadOnCollecting() {
-		return true;
+	public boolean shouldShowDuplicates() {
+		return false;
 	}
 
 	@Override
@@ -110,10 +117,12 @@ public class OsmNotesSettingsItem extends CollectionSettingsItem<OsmNotesPoint> 
 			if (!json.has("items")) {
 				return;
 			}
+			OsmEditingPlugin osmEditingPlugin = OsmandPlugin.getPlugin(OsmEditingPlugin.class);
+			long minId = osmEditingPlugin != null ? osmEditingPlugin.getDBBug().getMinID() - 1 : -2;
+			int idOffset = 0;
 			JSONArray jsonArray = json.getJSONArray("items");
 			for (int i = 0; i < jsonArray.length(); i++) {
 				JSONObject object = jsonArray.getJSONObject(i);
-				long id = object.getLong(ID_KEY);
 				String text = object.optString(TEXT_KEY);
 				double lat = object.getDouble(LAT_KEY);
 				double lon = object.getDouble(LON_KEY);
@@ -121,13 +130,14 @@ public class OsmNotesSettingsItem extends CollectionSettingsItem<OsmNotesPoint> 
 				author = author.isEmpty() ? null : author;
 				String action = object.getString(ACTION_KEY);
 				OsmNotesPoint point = new OsmNotesPoint();
-				point.setId(id);
+				point.setId(Math.min(-2, minId - idOffset));
 				point.setText(text);
 				point.setLatitude(lat);
 				point.setLongitude(lon);
 				point.setAuthor(author);
 				point.setAction(action);
 				items.add(point);
+				idOffset++;
 			}
 		} catch (JSONException e) {
 			warnings.add(app.getString(R.string.settings_item_read_error, String.valueOf(getType())));
@@ -142,7 +152,6 @@ public class OsmNotesSettingsItem extends CollectionSettingsItem<OsmNotesPoint> 
 			try {
 				for (OsmNotesPoint point : items) {
 					JSONObject jsonObject = new JSONObject();
-					jsonObject.put(ID_KEY, point.getId());
 					jsonObject.put(TEXT_KEY, point.getText());
 					jsonObject.put(LAT_KEY, point.getLatitude());
 					jsonObject.put(LON_KEY, point.getLongitude());

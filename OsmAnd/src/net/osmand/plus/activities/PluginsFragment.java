@@ -42,6 +42,8 @@ import net.osmand.plus.settings.fragments.BaseSettingsFragment.SettingsScreenTyp
 import org.apache.commons.logging.Log;
 
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 public class PluginsFragment extends BaseOsmAndFragment implements PluginStateListener {
 
@@ -138,6 +140,10 @@ public class PluginsFragment extends BaseOsmAndFragment implements PluginStateLi
 
 	private void switchEnabled(@NonNull ConnectedApp connectedApp) {
 		app.getAidlApi().switchEnabled(connectedApp);
+		OsmandPlugin plugin = OsmandPlugin.getPlugin(connectedApp.getPack());
+		if (plugin != null) {
+			OsmandPlugin.enablePlugin(getActivity(), app, plugin, connectedApp.isEnabled());
+		}
 		adapter.notifyDataSetChanged();
 	}
 
@@ -150,8 +156,26 @@ public class PluginsFragment extends BaseOsmAndFragment implements PluginStateLi
 
 		PluginsListAdapter(Context context) {
 			super(context, R.layout.plugins_list_item, new ArrayList<>());
-			addAll(app.getAidlApi().getConnectedApps());
-			addAll(OsmandPlugin.getVisiblePlugins());
+			addAll(getFilteredPluginsAndApps());
+		}
+
+		private List<Object> getFilteredPluginsAndApps() {
+			List<ConnectedApp> connectedApps = app.getAidlApi().getConnectedApps();
+			List<OsmandPlugin> visiblePlugins = OsmandPlugin.getVisiblePlugins();
+
+			for (Iterator<OsmandPlugin> iterator = visiblePlugins.iterator(); iterator.hasNext(); ) {
+				OsmandPlugin plugin = iterator.next();
+				for (ConnectedApp app : connectedApps) {
+					if (plugin.getId().equals(app.getPack())) {
+						iterator.remove();
+					}
+				}
+			}
+			List<Object> list = new ArrayList<>();
+			list.addAll(connectedApps);
+			list.addAll(visiblePlugins);
+
+			return list;
 		}
 
 		@NonNull
@@ -199,13 +223,6 @@ public class PluginsFragment extends BaseOsmAndFragment implements PluginStateLi
 				}
 				name = plugin.getName();
 				pluginDescription.setText(plugin.getDescription());
-
-				int linkTextColorId = nightMode ? R.color.ctx_menu_bottom_view_url_color_dark : R.color.ctx_menu_bottom_view_url_color_light;
-				int linkTextColor = ContextCompat.getColor(context, linkTextColorId);
-
-				pluginDescription.setLinkTextColor(linkTextColor);
-				pluginDescription.setMovementMethod(LinkMovementMethod.getInstance());
-				AndroidUtils.removeLinkUnderline(pluginDescription);
 
 				int color = AndroidUtils.getColorFromAttr(context, R.attr.list_background_color);
 				pluginLogo.setImageDrawable(UiUtilities.tintDrawable(plugin.getLogoResource(), color));

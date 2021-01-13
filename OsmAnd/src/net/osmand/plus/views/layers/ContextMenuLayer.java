@@ -232,20 +232,22 @@ public class ContextMenuLayer extends OsmandMapLayer {
 		if (!pressedLatLonSmall.isEmpty() || !pressedLatLonFull.isEmpty()) {
 			textScale = activity.getMyApplication().getSettings().TEXT_SCALE.get();
 		}
-		for (LatLon latLon : pressedLatLonSmall.keySet()) {
+		for (Entry<LatLon, BackgroundType> entry : pressedLatLonSmall.entrySet()) {
+			LatLon latLon = entry.getKey();
 			int x = (int) box.getPixXFromLatLon(latLon.getLatitude(), latLon.getLongitude());
 			int y = (int) box.getPixYFromLatLon(latLon.getLatitude(), latLon.getLongitude());
-			BackgroundType background = pressedLatLonSmall.get(latLon);
+			BackgroundType background = entry.getValue();
 			Bitmap pressedBitmapSmall = background.getTouchBackground(activity, true);
 			Rect destRect = getIconDestinationRect(
 					x, y, pressedBitmapSmall.getWidth(), pressedBitmapSmall.getHeight(), textScale);
 			canvas.drawBitmap(pressedBitmapSmall, null, destRect, paint);
 		}
-		for (LatLon latLon : pressedLatLonFull.keySet()) {
+		for (Entry<LatLon, BackgroundType> entry : pressedLatLonFull.entrySet()) {
+			LatLon latLon = entry.getKey();
 			int x = (int) box.getPixXFromLatLon(latLon.getLatitude(), latLon.getLongitude());
 			int y = (int) box.getPixYFromLatLon(latLon.getLatitude(), latLon.getLongitude());
 
-			BackgroundType background = pressedLatLonFull.get(latLon);
+			BackgroundType background = entry.getValue();
 			Bitmap pressedBitmap = background.getTouchBackground(activity, false);
 			int offsetY = background.getOffsetY(activity, textScale);
 			Rect destRect = getIconDestinationRect(
@@ -701,9 +703,16 @@ public class ContextMenuLayer extends OsmandMapLayer {
 			RenderingContext rc = maps.getVisibleRenderingContext();
 			RenderedObject[] renderedObjects = null;
 			if (rc != null && rc.zoom == tileBox.getZoom()) {
+				double sinRotate = Math.sin(Math.toRadians(rc.rotate - tileBox.getRotate()));
+				double cosRotate = Math.cos(Math.toRadians(rc.rotate - tileBox.getRotate()));
 				float x = tileBox.getPixXFrom31((int) (rc.leftX * rc.tileDivisor), (int) (rc.topY * rc.tileDivisor));
 				float y = tileBox.getPixYFrom31((int) (rc.leftX * rc.tileDivisor), (int) (rc.topY * rc.tileDivisor));
-				renderedObjects = nativeLib.searchRenderedObjectsFromContext(rc, (int) (point.x - x), (int) (point.y - y));
+				float dx = point.x - x;
+				float dy = point.y - y;
+				int coordX = (int) (dx * cosRotate - dy * sinRotate);
+				int coordY = (int) (dy * cosRotate + dx * sinRotate);
+
+				renderedObjects = nativeLib.searchRenderedObjectsFromContext(rc, coordX, coordY);
 			}
 			if (renderedObjects != null) {
 				int TILE_SIZE = 256;

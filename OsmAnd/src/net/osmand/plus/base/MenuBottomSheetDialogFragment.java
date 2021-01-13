@@ -16,6 +16,7 @@ import android.view.ViewTreeObserver.OnScrollChangedListener;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 
 import androidx.annotation.ColorInt;
 import androidx.annotation.ColorRes;
@@ -187,16 +188,34 @@ public abstract class MenuBottomSheetDialogFragment extends BottomSheetDialogFra
 
 				// 8dp is the shadow height
 				boolean showTopShadow = screenHeight - statusBarHeight - mainView.getHeight() >= AndroidUtils.dpToPx(activity, 8);
-				if (AndroidUiHelper.isOrientationPortrait(activity)) {
-					AndroidUtils.setBackground(mainView, showTopShadow ? getPortraitBg(activity) : getColoredBg(activity));
-					if (!showTopShadow) {
-						mainView.setPadding(0, 0, 0, 0);
-					}
-				} else {
-					AndroidUtils.setBackground(mainView, showTopShadow ? getLandscapeTopsidesBg(activity) : getLandscapeSidesBg(activity));
-				}
+				drawTopShadow(showTopShadow);
 			}
 		});
+	}
+
+	protected ViewTreeObserver.OnGlobalLayoutListener getShadowLayoutListener(){
+		return new ViewTreeObserver.OnGlobalLayoutListener() {
+			@Override
+			public void onGlobalLayout() {
+				setShadowOnScrollableView();
+			}
+		};
+	}
+
+	protected void drawTopShadow(boolean showTopShadow) {
+		final Activity activity = getActivity();
+		View mainView = getView();
+		if (activity == null || mainView == null) {
+			return;
+		}
+		if (AndroidUiHelper.isOrientationPortrait(activity)) {
+			AndroidUtils.setBackground(mainView, showTopShadow ? getPortraitBg(activity) : getColoredBg(activity));
+			if (!showTopShadow) {
+				mainView.setPadding(0, 0, 0, 0);
+			}
+		} else {
+			AndroidUtils.setBackground(mainView, showTopShadow ? getLandscapeTopsidesBg(activity) : getLandscapeSidesBg(activity));
+		}
 	}
 
 	private int getContentHeight(int availableScreenHeight) {
@@ -306,7 +325,7 @@ public abstract class MenuBottomSheetDialogFragment extends BottomSheetDialogFra
 		}
 	}
 
-	boolean useVerticalButtons() {
+	protected boolean useVerticalButtons() {
 		Activity activity = requireActivity();
 		int rightBottomButtonTextId = getRightBottomButtonTextId();
 		if (getDismissButtonTextId() != DEFAULT_VALUE && rightBottomButtonTextId != DEFAULT_VALUE) {
@@ -468,5 +487,16 @@ public abstract class MenuBottomSheetDialogFragment extends BottomSheetDialogFra
 				}
 			}
 		});
+	}
+
+	protected void setShadowOnScrollableView() {
+		ScrollView scrollView = getView().findViewById(R.id.scroll_view);
+		boolean isScrollable = scrollView.getChildAt(0).getHeight() >= scrollView.getHeight();;
+		if (isScrollable) {
+			drawTopShadow(false);
+			scrollView.getChildAt(0).setPadding(0,8,0,0);
+		} else {
+			drawTopShadow(true);
+		}
 	}
 }

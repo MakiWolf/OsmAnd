@@ -16,10 +16,7 @@ import net.osmand.plus.R;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -70,11 +67,6 @@ public class FavoritesSettingsItem extends CollectionSettingsItem<FavoriteGroup>
 	}
 
 	@NonNull
-	public String getDefaultFileName() {
-		return getName() + getDefaultFileExtension();
-	}
-
-	@NonNull
 	public String getDefaultFileExtension() {
 		return GPX_FILE_EXT;
 	}
@@ -115,11 +107,6 @@ public class FavoritesSettingsItem extends CollectionSettingsItem<FavoriteGroup>
 			}
 		}
 		return false;
-	}
-
-	@Override
-	public boolean shouldReadOnCollecting() {
-		return true;
 	}
 
 	@NonNull
@@ -177,21 +164,9 @@ public class FavoritesSettingsItem extends CollectionSettingsItem<FavoriteGroup>
 
 	@Nullable
 	@Override
-	SettingsItemWriter<FavoritesSettingsItem> getWriter() {
-		return new SettingsItemWriter<FavoritesSettingsItem>(this) {
-
-			@Override
-			public boolean writeToStream(@NonNull OutputStream outputStream) throws IOException {
-				List<FavouritePoint> favourites = getPointsFromGroups(items);
-				GPXFile gpxFile = favoritesHelper.asGpxFile(favourites);
-				Exception error = GPXUtilities.writeGpx(new OutputStreamWriter(outputStream, "UTF-8"), gpxFile);
-				if (error != null) {
-					warnings.add(app.getString(R.string.settings_item_write_error, String.valueOf(getType())));
-					SettingsHelper.LOG.error("Failed write to gpx file", error);
-					return false;
-				}
-				return true;
-			}
-		};
+	SettingsItemWriter<? extends SettingsItem> getWriter() {
+		List<FavouritePoint> favourites = getPointsFromGroups(items);
+		GPXFile gpxFile = favoritesHelper.asGpxFile(favourites);
+		return getGpxWriter(gpxFile);
 	}
 }

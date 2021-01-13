@@ -177,7 +177,7 @@
     <string name="plugins_screen">Erweiterungen</string>
     <string name="prefs_plugins_descr">Erweiterungen aktivieren weitere Einstellungen und zusätzliche Funktionen.</string>
     <string name="prefs_plugins">Erweiterungen</string>
-    <string name="osm_editing_plugin_description">Machen Sie OSM-Beiträge wie das Erstellen oder Ändern von OSM-POI-Objekten, das Eröffnen oder Kommentieren von OSM-Notizen und das Einreichen aufgezeichneter GPX-Dateien in OsmAnd, indem Sie Ihren Benutzernamen und Ihr Passwort angeben. OpenStreetMap.org ist ein gemeinschaftliches, frei zugängliches, globales Kartografierungsprojekt.</string>
+    <string name="osm_editing_plugin_description">Machen Sie OSM-Beiträge wie das Erstellen oder Ändern von OSM-POI-Objekten, das Eröffnen oder Kommentieren von OSM-Hinweisen und das Einreichen aufgezeichneter GPX-Dateien in OsmAnd, indem Sie Ihren Benutzernamen und Ihr Passwort angeben. OpenStreetMap.org ist ein gemeinschaftliches, frei zugängliches, globales Kartografierungsprojekt.</string>
     <string name="vector_maps_may_display_faster_on_some_devices">Vektorkarten werden wahrscheinlich schneller angezeigt. Funktioniert nur auf manchen Geräten.</string>
     <string name="play_commands_of_currently_selected_voice">Eine Stimme auswählen und mittels Abspielen von Ansagen testen:</string>
     <string name="debugging_and_development">OsmAnd-Entwicklung</string>
@@ -246,16 +246,16 @@
     <string name="use_fluorescent_overlays">Fluoreszierende Overlays</string>
     <string name="use_fluorescent_overlays_descr">Fluoreszierende Anzeige von Tracks und Routen.</string>
     <string name="offline_edition">Offline-Bearbeitung</string>
-    <string name="offline_edition_descr">Immer Offline-Bearbeitung verwenden.</string>
+    <string name="offline_edition_descr">Wenn die Offline-Bearbeitung aktiviert ist, werden Änderungen zunächst lokal gespeichert und auf Anforderung hochgeladen, andernfalls werden Änderungen sofort hochgeladen.</string>
     <string name="update_poi_does_not_change_indexes">Das Bearbeiten von POIs innerhalb von OsmAnd beeinflusst nicht die heruntergeladenen Offline-Karten, sondern wird in einer Datei auf Ihrem Gerät gespeichert.</string>
     <string name="local_openstreetmap_uploading">Hochladen …</string>
-    <string name="local_openstreetmap_were_uploaded">{0} POI/Notizen wurden hochgeladen</string>
+    <string name="local_openstreetmap_were_uploaded">{0} POI/Hinweise wurden hochgeladen</string>
     <string name="local_openstreetmap_uploadall">Alle hochladen</string>
     <string name="local_openstreetmap_upload">Änderung zu OSM hochladen</string>
     <string name="local_openstreetmap_delete">Änderung löschen</string>
     <string name="local_openstreetmap_descr_title">Asynchrone OSM-Bearbeitung:</string>
-    <string name="local_openstreetmap_settings">OSM-POIs/-Notizen auf dem Gerät gespeichert</string>
-    <string name="local_openstreetmap_settings_descr">Anzeigen und Verwalten von OSM-POIs/-Notizen in Ihrer Gerätedatenbank.</string>
+    <string name="local_openstreetmap_settings">OSM-POIs/-Hinweise auf dem Gerät gespeichert</string>
+    <string name="local_openstreetmap_settings_descr">Anzeigen und Verwalten von OSM-POIs/-Hinweisen in Ihrer Gerätedatenbank.</string>
     <string name="live_monitoring_m">Online-Aufzeichnung (benötigt GPX)</string>
     <string name="live_monitoring_m_descr">Track-Daten zu einem festgelegten Internetdienst senden, wenn die GPX-Aufzeichnung aktiviert ist.</string>
     <string name="live_monitoring_url">Webadresse zur Aufzeichnung</string>
@@ -313,7 +313,7 @@
     <string name="global_app_settings">Globale Einstellungen</string>
     <string name="user_name">OSM-Benutzername</string>
     <string name="open_street_map_login_descr">Benötigt für openstreetmap.org-Beiträge.</string>
-    <string name="user_password">OSM-Passwort</string>
+    <string name="user_password">Passwort</string>
     <string name="osmand_service">Hintergrundmodus</string>
     <string name="osmand_service_descr">OsmAnd läuft bei ausgeschaltetem Bildschirm im Hintergrund.</string>
     <string name="download_files_not_enough_space">Speicherplatz (frei: %2$s MB) reicht nicht aus, um %1$s MB herunterzuladen.</string>
@@ -562,7 +562,7 @@
     <string name="voices">Sprachansagen</string>
     <string name="voice">Sprachansage</string>
     <string name="no_vector_map_loaded">Vektorkarten wurden nicht geladen</string>
-    <string name="error_reading_gpx">GPX-Daten konnten nicht gelesen werden</string>
+    <string name="error_reading_gpx">GPX-Daten konnten nicht gelesen werden.</string>
     <string name="vector_data">Offline-Vektorkarten</string>
     <string name="transport_context_menu">Suche nach Verbindung an Haltestelle</string>
     <string name="poi_context_menu_modify">Bearbeite POI</string>
@@ -587,7 +587,7 @@
     <string name="layer_yandex_traffic">Yandex-Verkehr</string>
     <string name="layer_route">Route</string>
     <string name="shared_string_favorites">Favoriten</string>
-    <string name="layer_osm_bugs">OSM-Notizen (online)</string>
+    <string name="layer_osm_bugs">OSM-Hinweise (online)</string>
     <string name="layer_poi">POI-Overlay …</string>
     <string name="layer_amenity_label">POI-Overlay-Bezeichnungen</string>
     <string name="layer_map">Kartenquelle …</string>
@@ -738,7 +738,7 @@
     <string name="osm_settings">OpenStreetMap-Bearbeitung</string>
     <string name="additional_settings">Weitere Einstellungen</string>
     <string name="shared_string_settings">Einstellungen</string>
-    <string name="update_tile">Karte aktualisieren</string>
+    <string name="update_tile">Aktualisieren</string>
     <string name="reload_tile">Kartenteile aktualisieren</string>
     <string name="mark_point">Ziel</string>
     <string name="shared_string_add_to_favorites">Zu \'Favoriten\' hinzufügen</string>
@@ -1048,7 +1048,7 @@
     <string name="available_downloads_left">Es können noch %1$d Dateien heruntergeladen werden</string>
     <string name="install_paid">Vollversion</string>
     <string name="cancel_navigation">Navigation stoppen</string>
-    <string name="cancel_route">Route verwerfen</string>
+    <string name="cancel_route">Route verwerfen\?</string>
     <string name="use_kalman_filter_compass_descr">Kompass-Rauschreduzierung (erhöht die Kompassträgheit etwas).</string>
     <string name="use_kalman_filter_compass">Kalman-Filter verwenden</string>
     <string name="use_magnetic_sensor_descr">Für den Kompass Magnetsensor statt Lagesensor verwenden.</string>
@@ -1571,7 +1571,7 @@
     <string name="routing_attr_height_description">Höhe des Fahrzeugs für Routenberechnung angeben.</string>
     <string name="download_wikipedia_maps">Wikipedia</string>
     <string name="use_fast_recalculation">Schnelle Routenneuberechnung</string>
-    <string name="use_fast_recalculation_desc">Nur den Anfangsteil neu berechnen. Kann bei längeren Routen benutzt werden.</string>
+    <string name="use_fast_recalculation_desc">Berechnet nur den Anfangsteil der Route neu, was bei langen Reisen nützlich ist.</string>
     <string name="lang_es_ar">Spanisch (Argentinien)</string>
     <string name="lang_th">Thailändisch</string>
     <string name="lang_ms">Malaysisch</string>
@@ -1750,19 +1750,19 @@
     <string name="osm_save_offline">Offline speichern</string>
     <string name="osm_edit_modified_poi">Geänderter OSM-POI</string>
     <string name="osm_edit_deleted_poi">Gelöschter OSM-POI</string>
-    <string name="context_menu_item_open_note">OSM-Notiz erstellen</string>
-    <string name="osm_edit_reopened_note">Wiedereröffnete OSM-Notiz</string>
-    <string name="osm_edit_commented_note">Kommentierte OSM-Notiz</string>
-    <string name="osm_edit_created_note">Erstellte OSM-Notiz</string>
-    <string name="osn_bug_name">OSM-Notiz</string>
-    <string name="osn_add_dialog_title">Notiz erstellen</string>
+    <string name="context_menu_item_open_note">OSM-Hinweis erstellen</string>
+    <string name="osm_edit_reopened_note">Wiedereröffneter OSM-Hinweis</string>
+    <string name="osm_edit_commented_note">Kommentierter OSM-Hinweis</string>
+    <string name="osm_edit_created_note">Erstellter OSM-Hinweis</string>
+    <string name="osn_bug_name">OSM-Hinweis</string>
+    <string name="osn_add_dialog_title">Hinweis erstellen</string>
     <string name="osn_comment_dialog_title">Kommentar hinzufügen</string>
-    <string name="osn_reopen_dialog_title">Notiz wieder öffnen</string>
-    <string name="osn_close_dialog_title">Notiz schließen</string>
-    <string name="osn_add_dialog_success">Notiz erstellt</string>
-    <string name="osn_add_dialog_error">Notiz konnte nicht erstellt werden.</string>
-    <string name="osn_close_dialog_success">Notiz geschlossen</string>
-    <string name="osn_close_dialog_error">Notiz konnte nicht geschlossen werden.</string>
+    <string name="osn_reopen_dialog_title">Hinweis wieder öffnen</string>
+    <string name="osn_close_dialog_title">Hinweis schließen</string>
+    <string name="osn_add_dialog_success">Hinweis erstellt</string>
+    <string name="osn_add_dialog_error">Hinweis konnte nicht erstellt werden.</string>
+    <string name="osn_close_dialog_success">Hinweis geschlossen</string>
+    <string name="osn_close_dialog_error">Hinweis konnte nicht geschlossen werden.</string>
     <string name="context_menu_item_delete_waypoint">GPX-Wegpunkt löschen?</string>
     <string name="context_menu_item_edit_waypoint">GPX-Wegpunkt bearbeiten</string>
     <string name="lang_fy">Westfriesisch</string>
@@ -1888,8 +1888,8 @@
 \n Es werden vorübergehend {3} MB und dauerhaft {1} MB benötigt. (Von {2} MB.)</string>
     <string name="select_map_marker">Kartenmarkierung auswählen</string>
     <string name="map_markers_other">Andere Markierungen</string>
-    <string name="upload_osm_note_description">Laden Sie Ihre OSM-Notiz anonym oder über Ihr OpenStreetMap.org-Profil hoch.</string>
-    <string name="upload_osm_note">OSM-Notiz hochladen</string>
+    <string name="upload_osm_note_description">Laden Sie Ihren OSM-Hinweis anonym oder über Ihr OpenStreetMap.org-Profil hoch.</string>
+    <string name="upload_osm_note">OSM-Hinweis hochladen</string>
     <string name="upload_anonymously">Anonym hochladen</string>
     <string name="show_transparency_seekbar">Transparenz-Schieber anzeigen</string>
     <string name="recalculate_route">Route neu berechnen</string>
@@ -1928,7 +1928,7 @@
     <string name="storage_permission_restart_is_required">Die App darf nun auf den externen Speicher schreiben, dazu ist aber ein manueller Neustart nötig.</string>
     <string name="shared_string_move_up">Verschieben ↑</string>
     <string name="shared_string_move_down">Verschieben ↓</string>
-    <string name="file_name_containes_illegal_char">Dateiname beinhaltet nicht erlaubte Zeichen</string>
+    <string name="file_name_containes_illegal_char">Nicht erlaubte Zeichen im Dateinamen</string>
     <string name="no_waypoints_found">Keine Wegpunkte gefunden</string>
     <string name="no_map_markers_found">Bitte Kartenmarkierungen über die Karte hinzufügen</string>
     <string name="rendering_value_fine_name">Fein</string>
@@ -1960,7 +1960,7 @@
     <string name="map_widget_bearing">Relative Peilung</string>
     <string name="access_autoannounce_period">Zeit zwischen automatischen Ansagen</string>
     <string name="map_widget_magnetic_bearing">Magnetische Peilung</string>
-    <string name="access_no_destination">Ziel ist nicht festgelegt</string>
+    <string name="access_no_destination">Modul für Bedienungshilfen: Ziel ist nicht festgelegt</string>
     <string name="use_osm_live_routing">OsmAnd-Live-Navigation</string>
     <string name="map_widget_battery">Akkustand</string>
     <string name="move_marker_bottom_sheet_title">Karte bewegen, um die Position der Markierung zu verändern</string>
@@ -2103,8 +2103,8 @@
     <string name="quick_action_map_style_switch">Kartendarstellung geändert zu „%s“.</string>
     <string name="quick_action_take_audio_note">Neue Audio-Notiz</string>
     <string name="quick_action_take_video_note">Neue Video-Notiz</string>
-    <string name="quick_action_take_photo_note">Neue Fotonotiz</string>
-    <string name="quick_action_add_osm_bug">OSM-Notiz hinzufügen</string>
+    <string name="quick_action_take_photo_note">Neue Foto-Notiz</string>
+    <string name="quick_action_add_osm_bug">OSM-Hinweis hinzufügen</string>
     <string name="quick_action_navigation_voice">Sprachausgabe ein/aus</string>
     <string name="quick_action_navigation_voice_off">Sprachausgabe aktivieren</string>
     <string name="quick_action_navigation_voice_on">Sprachausgabe stummschalten</string>
@@ -2154,7 +2154,7 @@
     <string name="quick_action_gpx_category_descr">Wählen Sie eine beliebige Kategorie.</string>
     <string name="configure_screen_quick_action">Schnellaktion</string>
     <string name="quick_action_add_gpx_descr">Eine Schaltfläche, um einen GPX-Wegpunkt in der Bildschirmmitte einzufügen.</string>
-    <string name="quick_action_add_osm_bug_descr">Eine Schaltfläche, um eine OSM-Notiz in der Bildschirmmitte einzufügen.</string>
+    <string name="quick_action_add_osm_bug_descr">Eine Schaltfläche, um einen OSM-Hinweis in der Bildschirmmitte einzufügen.</string>
     <string name="quick_action_add_poi_descr">Eine Schaltfläche, um einen POI in der Bildschirmmitte einzufügen.</string>
     <string name="quick_action_navigation_voice_descr">Umschalter, um die Sprachansagen während der Navigation ein- oder auszuschalten.</string>
     <string name="quick_action_add_parking_descr">Eine Schaltfläche, um eine Parkposition in der Bildschirmmitte einzufügen.</string>
@@ -2170,7 +2170,7 @@
     <string name="quick_action_map_overlay_switch">Karten-Overlay wurde in „%s“ geändert.</string>
     <string name="quick_action_map_underlay_switch">Karten-Underlay wurde in „%s“ geändert.</string>
     <string name="navigate_point_olc_info_invalid">Ungültiger OLC
-</string>
+\n</string>
     <string name="navigate_point_olc_info_short">Kurzer OLC
 \nBitte geben Sie einen vollständigen Code ein</string>
     <string name="navigate_point_olc_info_area">Gültiger vollständiger OLC
@@ -2395,10 +2395,10 @@
     <string name="routing_attr_allow_private_name">Privatzugang erlauben</string>
     <string name="routing_attr_allow_private_description">Zugang zu Privatgrund erlauben.</string>
     <string name="srtm_color_scheme">Farbschema</string>
-    <string name="quick_action_showhide_osmbugs_title">OSM-Notizen ein- oder ausblenden</string>
-    <string name="quick_action_osmbugs_show">OSM-Notizen einblenden</string>
-    <string name="quick_action_osmbugs_hide">OSM-Notizen ausblenden</string>
-    <string name="quick_action_showhide_osmbugs_descr">Schaltfläche zum Ein- oder Ausblenden von OSM-Notizen auf der Karte.</string>
+    <string name="quick_action_showhide_osmbugs_title">OSM-Hinweise ein- oder ausblenden</string>
+    <string name="quick_action_osmbugs_show">OSM-Hinweise einblenden</string>
+    <string name="quick_action_osmbugs_hide">OSM-Hinweise ausblenden</string>
+    <string name="quick_action_showhide_osmbugs_descr">Schaltfläche zum Ein- oder Ausblenden von OSM-Hinweisen auf der Karte.</string>
     <string name="sorted_by_distance">Nach Entfernung sortiert</string>
     <string name="search_favorites">In Favoriten suchen</string>
     <string name="hillshade_menu_download_descr">Laden Sie die Reliefkarte herunter, um vertikale Schattierungen anzuzeigen.</string>
@@ -2418,7 +2418,7 @@
     <string name="mapillary_widget_descr">Ermöglicht schnelle Beiträge zu Mapillary.</string>
     <string name="mapillary_descr">Fotos von der Straße aus dem Netz für jeden. Orte entdecken, mitwirken und die Welt in Bildern festhalten.</string>
     <string name="mapillary">Mapillary</string>
-    <string name="mapillary_action_descr">Mit Mapillary Bilder dieses Orts beitragen.</string>
+    <string name="mapillary_action_descr">Mit Mapillary Bilder von diesem Ort beisteuern.</string>
     <string name="shared_string_install">Installieren</string>
     <string name="online_photos">Online-Fotos</string>
     <string name="no_photos_descr">Keine Fotos hier.</string>
@@ -2537,9 +2537,9 @@
     <string name="map_orientation_change_in_accordance_with_speed">Kartenausrichtungsgrenzwert</string>
     <string name="map_orientation_change_in_accordance_with_speed_descr">Auswählen, bei welcher Geschwindigkeit die Kartenausrichtung von \'Nach Bewegungsrichtung\' auf \'Nach Kompass\' umschaltet.</string>
     <string name="marker_moved_to_history">Kartenmarkierung in den Verlauf verschoben</string>
-    <string name="osn_modify_dialog_error">Notiz konnte nicht geändert werden.</string>
-    <string name="osn_modify_dialog_title">Notiz ändern</string>
-    <string name="context_menu_item_modify_note">OSM-Notiz ändern</string>
+    <string name="osn_modify_dialog_error">Hinweis konnte nicht geändert werden.</string>
+    <string name="osn_modify_dialog_title">Hinweis ändern</string>
+    <string name="context_menu_item_modify_note">OSM-Hinweis ändern</string>
     <string name="make_round_trip_descr">Kopie des Startpunkts als Ziel hinzufügen.</string>
     <string name="make_round_trip">Rundreise erstellen</string>
     <string name="my_location">Meine Position</string>
@@ -2583,7 +2583,7 @@
     <string name="shared_string_gpx_waypoints">Track-Wegpunkte</string>
     <string name="modify_the_search_query">Suchanfrage verändern.</string>
     <string name="empty_state_osm_edits">OSM-Objekte erstellen oder ändern</string>
-    <string name="empty_state_osm_edits_descr">OSM-POIs erstellen oder verändern, OSM-Notizen eröffnen oder bearbeiten und aufgezeichnete GPX-Dateien hinzufügen.</string>
+    <string name="empty_state_osm_edits_descr">OSM-POIs erstellen oder verändern, OSM-Hinweise erstellen oder bearbeiten und aufgezeichnete GPX-Dateien hinzufügen.</string>
     <string name="shared_string_deleted">Gelöscht</string>
     <string name="shared_string_edited">Bearbeitet</string>
     <string name="shared_string_added">Hinzugefügt</string>
@@ -2645,16 +2645,16 @@
     <string name="nautical_renderer">Nautisch</string>
     <string name="copy_location_name">Ort/POI-Name kopieren</string>
     <string name="toast_empty_name_error">Unbenannter Ort</string>
-    <string name="show_closed_notes">Geschlossene Notizen anzeigen</string>
-    <string name="switch_osm_notes_visibility_desc">OSM-Notizen auf der Karte ein-/ausblenden.</string>
+    <string name="show_closed_notes">Geschlossene Hinweise anzeigen</string>
+    <string name="switch_osm_notes_visibility_desc">OSM-Hinweise auf der Karte ein- oder ausblenden.</string>
     <string name="gpx_file_desc">GPX - geeignet für den Export in JOSM oder andere OSM-Editoren.</string>
     <string name="osc_file_desc">OSC - geeignet für den Export nach OSM.</string>
     <string name="shared_string_gpx_file">GPX-Datei</string>
     <string name="osc_file">OSC-Datei</string>
     <string name="choose_file_type">Dateityp auswählen</string>
-    <string name="osm_edits_export_desc">Als OSM-Notizen, POIs oder beides exportieren.</string>
+    <string name="osm_edits_export_desc">Als OSM-Hinweise, POIs oder beides exportieren.</string>
     <string name="all_data">Alle Daten</string>
-    <string name="osm_notes">OSM-Notizen</string>
+    <string name="osm_notes">OSM-Hinweise</string>
     <string name="tunnel_warning">Tunnel voraus</string>
     <string name="show_tunnels">Tunnel</string>
     <string name="shared_string_current">Aktuell</string>
@@ -3104,13 +3104,13 @@
     <string name="routing_attr_allow_expert_description">Extrem schwere Routen, mit gefährlichen Hindernissen und schwieriger Umgebung.</string>
     <string name="routing_attr_allow_classic_only_name">Nur klassische Routen zulassen</string>
     <string name="routing_attr_difficulty_preference_name">Bevorzugter Schwierigkeitsgrad</string>
-    <string name="routing_attr_piste_type_downhill_name">Ski Alpin/Abfahrtslauf</string>
+    <string name="routing_attr_piste_type_downhill_name">Ski Alpin und Abfahrtslauf</string>
     <string name="routing_attr_piste_type_downhill_description">Pisten für Ski Alpin oder Abfahrtslauf und Zugang zu den Skiliften.</string>
     <string name="process_downloading_service">OsmAnd Download-Dienst</string>
     <string name="shared_string_color_magenta">Magenta</string>
     <string name="shared_string_icon">Symbol</string>
     <string name="collected_data">Erfasste Daten</string>
-    <string name="routing_attr_piste_type_nordic_name">Skilanglauf/Nordischer Skisport</string>
+    <string name="routing_attr_piste_type_nordic_name">Skilanglauf und Nordischer Skisport</string>
     <string name="routing_attr_piste_type_nordic_description">Loipen für Skilangläufer und Nordische Skiläufer.</string>
     <string name="routing_attr_difficulty_preference_description">Routen dieser Schwierigkeit bevorzugen, obwohl bei kürzerer Routenführung schwierigere oder einfachere Pisten immer noch möglich sind.</string>
     <string name="routing_attr_freeride_policy_name">Abseits der Piste</string>
@@ -3181,7 +3181,7 @@
     <string name="shared_string_file_is_saved">%s ist gespeichert</string>
     <string name="shared_string_open_track">Track öffnen</string>
     <string name="shared_string_track_is_saved">Track %s ist gespeichert</string>
-    <string name="sett_no_ext_input">Keine</string>
+    <string name="sett_no_ext_input">Keines</string>
     <string name="sett_wunderlinq_ext_input">WunderLINQ</string>
     <string name="sett_parrot_ext_input">Parrot</string>
     <string name="external_input_device_descr">Ein externes Steuergerät, wie beispielsweise eine Tastatur oder ein WunderLINQ, wählen.</string>
@@ -3373,7 +3373,7 @@
     <string name="route_start_point">Startpunkt</string>
     <string name="default_speed_dialog_msg">Schätzt die Ankunftszeit für unbekannte Straßentypen und begrenzt die Geschwindigkeit für alle Straßen (kann die Navigation beeinflussen)</string>
     <string name="track_saved">Track gespeichert</string>
-    <string name="empty_filename">Dateiname ist leer</string>
+    <string name="empty_filename">Leerer Dateiname</string>
     <string name="shared_string_revert">Zurücksetzen</string>
     <string name="clear_confirmation_msg">%1$s löschen\?</string>
     <string name="suggested_maps">Vorgeschlagene Karten</string>
@@ -3432,14 +3432,14 @@
     <string name="osm_editing">OSM-Bearbeitung</string>
     <string name="app_mode_osm">OSM</string>
     <string name="select_nav_icon_descr">Symbol, das beim Navigieren oder Bewegen angezeigt wird.</string>
-    <string name="multimedia_notes_view_descr">Ihre OSM-Notizen sind in %1$s.</string>
+    <string name="multimedia_notes_view_descr">Ihre OSM-Hinweise sind in %1$s.</string>
     <string name="button_rate">Bewerten</string>
     <string name="logcat_buffer_descr">Protokolle der Anwendung einsehen und freigeben</string>
     <string name="permission_is_required">Für die Verwendung dieser Option ist eine Berechtigung erforderlich.</string>
     <string name="file_does_not_contain_routing_rules">Die Datei \'%1$s\' enthält keine Routing-Regeln. Bitte eine andere Datei wählen.</string>
     <string name="monitoring_min_speed_descr">Dies ist ein Filter, welcher Punkte unter einer gewissen Geschwindigkeit nicht aufzeichnet. Dadurch können aufgezeichnete Tracks auf der Karte gleichmäßiger aussehen.</string>
     <string name="monitoring_min_speed_descr_side_effect">Nebeneffekt: Auf Ihrer Strecke fehlen alle Abschnitte, in denen das Mindestgeschwindigkeitskriterium nicht erfüllt wurde (z. B., wenn Sie Ihr Fahrrad einen steilen Hügel hinaufschieben). Außerdem wird es keine Informationen über Ruhezeiten wie Pausen geben. Dies hat Auswirkungen auf jede Analyse oder Nachbearbeitung, z. B., wenn Sie versuchen, die Gesamtlänge Ihrer Reise, die Zeit in Bewegung oder Ihre Durchschnittsgeschwindigkeit zu bestimmen.</string>
-    <string name="plugin_global_prefs_info">Diese Einstellungen gelten für alle Profile.</string>
+    <string name="plugin_global_prefs_info">Diese Modul-Einstellungen sind global und gelten für alle Profile</string>
     <string name="live_monitoring_time_buffer">Zeitpuffer</string>
     <string name="live_monitoring_tracking_interval">Aufzeichnungsintervall</string>
     <string name="live_monitoring_adress">Webadresse</string>
@@ -3520,7 +3520,7 @@
     <string name="import_profile_dialog_description">Das importierte Profil enthält zusätzliche Daten. Klicken Sie auf \"Importieren\", um nur Profildaten zu importieren, oder wählen Sie zusätzliche Daten aus.</string>
     <string name="export_profile_dialog_description">Sie können zusätzliche Daten zum Exportieren zusammen mit dem Profil auswählen.</string>
     <string name="index_name_antarctica">Antarktis</string>
-    <string name="osm_edits_view_descr">Sie finden Ihre noch nicht übertragenen Änderungen oder OSM-Fehler in %1$s. Hochgeladene Punkte werden nicht mehr angezeigt.</string>
+    <string name="osm_edits_view_descr">Betrachten Sie alle Ihre noch nicht hochgeladenen Bearbeitungen oder OSM-Hinweise in %1$s. Bereits hochgeladene Änderungen werden nicht mehr angezeigt.</string>
     <string name="monitoring_min_speed_descr_recommendation">Empfehlung: Versuchen Sie zunächst, die Bewegungserkennung über den Filter zur Mindestabstandsmessung (B) zu verwenden. Das kann zu besseren Ergebnissen führen und Sie werden weniger Daten verlieren. Sollten Ihre Tracks bei niedrigen Geschwindigkeiten ungenau bleiben, versuchen Sie hier Werte ungleich Null. Bitte beachten Sie, dass einige Messungen (einige netzwerkbasierte Methoden) möglicherweise überhaupt keine Geschwindigkeitswerte anzeigen. In diesem Fall wird nichts aufgezeichnet.</string>
     <string name="monitoring_min_accuracy_descr">Es werden nur Punkte aufgezeichnet, die mit der gewählten Mindestgenauigkeit bestimmt wurden (in Metern/Fuß, wie von Android je nach Chipsatz bereitgestellt). Die Genauigkeit beschreibt die Nähe der Messungen zur wahren Position und steht nicht unmittelbar in Bezug zur Präzision, der Streuung wiederholter Messungen.</string>
     <string name="monitoring_min_accuracy_descr_remark">Bemerkung: Wenn das GPS unmittelbar vor einer Aufzeichnung ausgeschaltet war, kann der erste gemessene Punkt eine verminderte Genauigkeit haben, sodass wir in unserem Code vielleicht eine Sekunde oder so warten wollen, bevor ein Punkt (oder der beste von 3 aufeinanderfolgenden Punkten usw.) aufgezeichnet wird. Das ist aber noch nicht implementiert.</string>
@@ -3579,7 +3579,7 @@
     <string name="quick_action_terrain_descr">Eine Schaltfläche zum Ein- und Ausblenden der Geländeebene auf der Karte.</string>
     <string name="quick_action_terrain_show">Gelände einblenden</string>
     <string name="quick_action_terrain_hide">Gelände ausblenden</string>
-    <string name="quick_action_show_hide_terrain">Gelände ein- / ausblenden</string>
+    <string name="quick_action_show_hide_terrain">Gelände ein- oder ausblenden</string>
     <string name="shared_string_hillshade">Relief</string>
     <string name="shared_string_zoom_levels">Zoomstufen</string>
     <string name="shared_string_transparency">Transparenz</string>
@@ -3697,11 +3697,11 @@
     <string name="additional_actions_descr">Sie können auf diese Aktionen zugreifen, indem Sie auf die Schaltfläche \"%1$s\" tippen.</string>
     <string name="quick_action_transport_hide">Öffentliche Verkehrsmittel ausblenden</string>
     <string name="quick_action_transport_show">Öffentliche Verkehrsmittel anzeigen</string>
-    <string name="quick_action_show_hide_transport">Öffentliche Verkehrsmittel anzeigen/ausblenden</string>
+    <string name="quick_action_show_hide_transport">Öffentliche Verkehrsmittel anzeigen oder ausblenden</string>
     <string name="quick_action_transport_descr">Schaltfläche zum Ein- oder Ausblenden der öffentlichen Verkehrsmittel auf der Karte.</string>
-    <string name="create_edit_poi">POI erstellen / bearbeiten</string>
+    <string name="create_edit_poi">POI erstellen oder bearbeiten</string>
     <string name="parking_positions">Parkpositionen</string>
-    <string name="add_edit_favorite">Favorit hinzufügen / bearbeiten</string>
+    <string name="add_edit_favorite">Favorit hinzufügen oder bearbeiten</string>
     <string name="reset_deafult_order">Standard-Reihenfolge der Elemente wiederherstellen</string>
     <string name="back_to_editing">Zurück zur Bearbeitung</string>
     <string name="quick_action_switch_profile_descr">Die Aktionsschaltfläche schaltet zwischen den ausgewählten Profilen um.</string>
@@ -3801,14 +3801,14 @@
     <string name="lenght_limit_description">Bitte geben Sie Ihre Fahrzeuglänge an. Für lange Fahrzeuge könnten einige Streckenabschnitte nicht befahrbar sein.</string>
     <string name="quick_action_remove_next_destination">Nächstgelegenen Zielpunkt löschen</string>
     <string name="please_provide_point_name_error">Bitte geben Sie einen Namen für das Profil an</string>
-    <string name="quick_action_remove_next_destination_descr">Der aktuelle Punkt auf der Route wird gelöscht. Wenn es das Ziel ist, wird die Navigation gestoppt.</string>
+    <string name="quick_action_remove_next_destination_descr">Löscht das nächste Ziel auf Ihrer Route. Wenn dies das endgültige Ziel ist, wird die Navigation gestoppt.</string>
     <string name="search_download_wikipedia_maps">Wikipedia-Karten herunterladen</string>
-    <string name="plugin_wikipedia_description">Info über Sehenswürdigkeiten erhalten Sie bei Wikipedia. Es ist Ihr Offline-Wegweiser für die Hosentasche - aktivieren Sie einfach das Wikipedia-Modul und genießen Sie Artikel über Objekte in Ihrer Umgebung.</string>
+    <string name="plugin_wikipedia_description">Holen Sie sich Informationen über Sehenswürdigkeiten aus Wikipedia, einem Offline-Reiseführer für die Hosentasche mit Artikeln über Orte und Ziele.</string>
     <string name="app_mode_enduro_motorcycle">Enduro</string>
     <string name="app_mode_motor_scooter">Motorroller</string>
     <string name="app_mode_wheelchair">Rollstuhl</string>
     <string name="app_mode_go_cart">Go-Kart</string>
-    <string name="osm_edit_closed_note">Geschlossene OSM-Notiz</string>
+    <string name="osm_edit_closed_note">Geschlossener OSM-Hinweis</string>
     <string name="app_mode_wheelchair_forward">Rollstuhl vorwärts</string>
     <string name="set_working_days_to_continue">Zum Fortfahren bitte Arbeitstage auswählen</string>
     <string name="route_between_points">Route zwischen Punkten</string>
@@ -3839,12 +3839,12 @@
     <string name="next_segment">Nächstes Segment</string>
     <string name="navigation_profile">Navigationsprofil</string>
     <string name="route_between_points_add_track_desc">Wählen Sie eine Trackdatei, für die ein neues Segment hinzugefügt werden soll.</string>
-    <string name="follow_track_descr">Track auswählen, der verfolgt werden soll</string>
+    <string name="follow_track_descr">Track auswählen, dem gefolgt werden soll</string>
     <string name="delete_address">Adresse löschen</string>
     <string name="add_address">Adresse hinzufügen</string>
     <string name="access_hint_enter_address">Adresse eingeben</string>
     <string name="street_level_imagery">Bilder auf Straßenebene</string>
-    <string name="plan_route_exit_dialog_descr">Sind Sie sicher, dass Sie alle Änderungen an der geplanten Route verwerfen wollen, indem Sie sie schließen\?</string>
+    <string name="plan_route_exit_dialog_descr">Sind Sie sicher, dass Sie alle Änderungen an der geplanten Route verwerfen wollen\?</string>
     <string name="plan_route_change_route_type_before">Routentyp davor ändern</string>
     <string name="plan_route_change_route_type_after">Routentyp danach ändern</string>
     <string name="plan_route_trim_before">Davor trimmen</string>
@@ -3877,8 +3877,8 @@
     <string name="save_track_to_gpx">Während der Navigation automatisch Track aufzeichnen</string>
     <string name="shared_string_gpx_route">Track Route</string>
     <string name="import_track_descr">Track Datei zum Folgen auswählen, oder vom Gerät importieren.</string>
-    <string name="disable_recording_once_app_killed_descrp">Die GPX-Aufzeichnung wird angehalten, wenn OsmAnd beendet wird (über „zuletzt verwendete Apps“). (Die Hintergrunddienst-Anzeige verschwindet aus der Android-Benachrichtigungsleiste.)</string>
-    <string name="save_global_track_interval_descr">Aufzeichnungsintervall für die generelle Track-Aufzeichnung festlegen (via Schaltfläche \'GPX\' auf dem Kartenbildschirm).</string>
+    <string name="disable_recording_once_app_killed_descrp">Die Track-Aufzeichnung wird angehalten, wenn OsmAnd beendet wird (über „zuletzt verwendete Apps“). (Die Hintergrunddienst-Anzeige verschwindet aus der Android-Benachrichtigungsleiste.)</string>
+    <string name="save_global_track_interval_descr">Aufzeichnungsintervall für die generelle Track-Aufzeichnung festlegen (wird über die Schaltfläche \'Routenaufzeichung\' auf dem Kartenbildschirm angeschaltet).</string>
     <string name="route_between_points_warning_desc">Als nächstes können Sie Ihren Track mit einem Ihrer Navigationsprofile auf die nächstgelegene erlaubte Straße einrasten lassen, um diese Option zu nutzen.</string>
     <string name="quick_action_add_gpx">Track-Wegpunkt hinzufügen</string>
     <string name="number_of_gpx_files_selected_pattern">%s Track Dateien ausgewählt</string>
@@ -3895,7 +3895,7 @@
     <string name="shared_string_redo">Wiederholen</string>
     <string name="release_3_8">• Aktualisierte Funktion zum Planen einer Route: erlaubt die Verwendung verschiedener Navigationstypen pro Segment und die Einbeziehung von Tracks
 \n
-\n • Neues Menü zum Erscheinungsbild von Tracks: Wählen Sie Farbe, Dicke, Richtungspfeile, Start-/Ziel-Symbole
+\n • Neues Menü zum Erscheinungsbild von Tracks: Wählen Sie Farbe, Dicke, Richtungspfeile, Start- und Zielsymbole
 \n
 \n • Verbesserte Darstellung von Fahrradknotenpunkten.
 \n
@@ -3911,14 +3911,14 @@
     <string name="sort_last_modified">Zuletzt geändert</string>
     <string name="sort_name_descending">Name: Z – A</string>
     <string name="sort_name_ascending">Name: A – Z</string>
-    <string name="start_finish_icons">Start-/Ziel-Symbole</string>
+    <string name="start_finish_icons">Start- und Zielsymbole</string>
     <string name="contour_lines_thanks">Vielen Dank für den Kauf von \'Höhenlinien\'</string>
-    <string name="osm_live_payment_desc_hw">Das Abonnement wird pro ausgewähltem Zeitraum berechnet. Sie können das Abonnement jederzeit über die AppGallery kündigen.</string>
-    <string name="osm_live_payment_subscription_management_hw">Die Bezahlung wird Ihrem AppGallery-Konto bei der Bestätigung des Kaufs belastet.
+    <string name="osm_live_payment_desc_hw">Das Abonnement wird für den gewählten Zeitraum berechnet. Sie können es jederzeit in Ihrer AppGallery kündigen.</string>
+    <string name="osm_live_payment_subscription_management_hw">Ihr AppGallery-Konto wird mit der Kaufbestätigung belastet.
 \n
-\nDas Abonnement verlängert sich automatisch, sofern es nicht vor dem Verlängerungsdatum gekündigt wird. Ihr Konto wird für den Verlängerungszeitraum (Monat / drei Monate / Jahr) nur am Verlängerungsdatum belastet.
+\nDas Abonnement verlängert sich automatisch, wenn es nicht vor dem Verlängerungsdatum gekündigt wird. Ihr Konto wird erst am Verlängerungsdatum für den Verlängerungszeitraum (Monat/drei Monate/Jahr) belastet.
 \n
-\nSie können Ihre Abonnements verwalten und kündigen, indem Sie zu Ihren AppGallery-Einstellungen gehen.</string>
+\nSie können Ihre Abonnements in Ihren AppGallery-Einstellungen verwalten und kündigen.</string>
     <string name="routing_attr_avoid_footways_description">Vermeidet Fußwege</string>
     <string name="routing_attr_avoid_footways_name">Keine Fußwege</string>
     <string name="development">Entwicklung</string>
@@ -3927,22 +3927,22 @@
     <string name="use_complex_routing">Komplexe Routenberechnung</string>
     <string name="complex_routing_descr">Zwei-Phasen-Routenberechnung für die Autonavigation.</string>
     <string name="use_native_pt">Native ÖPNV Entwicklung</string>
-    <string name="use_native_pt_desc">Wechseln zu Java (sicher) Berechnung des ÖPNV-Routings</string>
-    <string name="osm_edit_logout_success">Abmeldung erfolgreich</string>
+    <string name="use_native_pt_desc">Wechseln zur Java (sicher) Berechnung des ÖPNV-Routings</string>
+    <string name="osm_edit_logout_success">Abgemeldet</string>
     <string name="file_already_imported">Datei wurde bereits in OsmAnd importiert</string>
     <string name="perform_oauth_authorization">Anmelden über OAuth</string>
     <string name="clear_osm_token">OpenStreetMap OAuth-Token löschen</string>
     <string name="what_is_new">Was ist neu</string>
     <string name="snowmobile_render_descr">Für das Schneemobilfahren mit speziellen Straßen und Tracks.</string>
-    <string name="perform_oauth_authorization_description">Durchführen eines OAuth-Logins zur Nutzung der osmedit-Funktionen</string>
+    <string name="perform_oauth_authorization_description">Anmelden mit OAuth zur Nutzung der osmedit-Funktionen</string>
     <string name="use_two_phase_routing">2-Phasen-A*-Routing-Algorithmus verwenden</string>
-    <string name="message_need_calculate_route_before_show_graph">%1$s Daten sind nur auf den Straßen verfügbar, Sie müssen eine Route mit \"Route zwischen Punkten\" berechnen, um sie zu erhalten.</string>
+    <string name="message_need_calculate_route_before_show_graph">%1$s Daten sind nur auf Straßen verfügbar, Sie müssen eine Route mit \"Route zwischen Punkten\" berechnen, um eine grafische Darstellung zu erhalten.</string>
     <string name="ltr_or_rtl_combine_via_dash">%1$s — %2$s</string>
     <string name="navigate_point_mgrs">MGRS</string>
-    <string name="message_graph_will_be_available_after_recalculation">Warte auf die Neuberechnung der Route.
-\nDie Graphik wird nach der Neuberechnung verfügbar sein.</string>
+    <string name="message_graph_will_be_available_after_recalculation">Bitte warten Sie.
+\nDie Grafik wird nach der Neuberechnung der Route verfügbar sein.</string>
     <string name="icon_group_amenity">Einrichtung</string>
-    <string name="icon_group_transport">ÖPNV</string>
+    <string name="icon_group_transport">Verkehr</string>
     <string name="icon_group_service">Dienstleistung</string>
     <string name="icon_group_travel">Reisen</string>
     <string name="icon_group_sport">Sport</string>
@@ -3951,4 +3951,107 @@
     <string name="icon_group_symbols">Symbole</string>
     <string name="shared_string_local_maps">Lokale Karten</string>
     <string name="icon_group_special">Spezial</string>
+    <string name="message_you_need_add_two_points_to_show_graphs">Fügen Sie mindestens zwei Punkte hinzu</string>
+    <string name="manage_subscription">Abonnement verwalten</string>
+    <string name="subscription_payment_issue_title">Tippen Sie auf die Schaltfläche, um eine Zahlungsmethode auf Google Play einzurichten und Ihr Abonnement zu bestätigen.</string>
+    <string name="subscription_expired_title">OsmAnd Live Abonnement ist abgelaufen</string>
+    <string name="subscription_paused_title">OsmAnd Live Abonnement wurde ausgesetzt</string>
+    <string name="subscription_on_hold_title">OsmAnd Live Abonnement liegt auf Eis</string>
+    <string name="login_open_street_map">Bei OpenStreetMap anmelden</string>
+    <string name="login_open_street_map_org">Bei OpenStreetMap.org anmelden</string>
+    <string name="sign_in_with_open_street_map">Anmelden mit OpenStreetMap</string>
+    <string name="open_street_map_login_mode">Sie müssen sich anmelden, um Änderungen hochzuladen.
+\n
+\nSie können sich mit der sicheren OAuth-Methode anmelden oder Ihren Benutzernamen und Ihr Passwort verwenden.</string>
+    <string name="use_login_password">Benutzername und Passwort verwenden</string>
+    <string name="login_account">Konto</string>
+    <string name="user_login">Benutzername</string>
+    <string name="markers_history">Historie der Marker</string>
+    <string name="send_files_to_openstreetmap">GPX-Datei an OpenStreetMap senden</string>
+    <string name="enter_text_separated">Geben Sie durch Komma getrennte Tags ein.</string>
+    <string name="gpx_upload_public_visibility_descr">\"Öffentlich\" bedeutet, dass der Track öffentlich in Ihren GPS-Tracks und in öffentlichen GPS-Track Verzeichnissen mit Zeitstempeln in Rohform angezeigt wird. Die über die API bereitgestellten Daten verweisen nicht auf Ihre Track-Seite. Die Zeitstempel der Trackpunkte sind nicht über die öffentliche GPS API verfügbar, und die Trackpunkte sind nicht chronologisch geordnet.</string>
+    <string name="gpx_upload_identifiable_visibility_descr">\"Identifizierbar\" bedeutet, dass der Track in Ihren GPS-Tracks und in öffentlichen GPS-Track Verzeichnissen angezeigt wird, d.h. andere Benutzer können den Track herunterladen und mit Ihrem Benutzernamen verknüpfen. Öffentliche, mit Zeitstempel versehene Trackpunkt-Daten von der GPS API, die über die Trackpunkt API bereitgestellt werden, verweisen auf Ihre ursprüngliche Trackseite.</string>
+    <string name="gpx_upload_private_visibility_descr">\"Privat\" bedeutet, dass der Track nicht in öffentlichen Verzeichnissen auftaucht, aber seine Trackpunkte in nicht chronologischer Reihenfolge über die öffentliche GPS API ohne Zeitstempel verfügbar sind.</string>
+    <string name="gpx_upload_trackable_visibility_descr">\"Verfolgbar\" bedeutet, dass die Spur nicht in öffentlichen Auflistungen auftaucht, aber verarbeitete Trackpunkte mit Zeitstempeln davon (die nicht direkt mit Ihnen in Verbindung gebracht werden können) durch Downloads von der öffentlichen GPS API.</string>
+    <string name="osm_edit_close_note">OSM-Hinweis schließen</string>
+    <string name="osm_edit_comment_note">OSM-Hinweis kommentieren</string>
+    <string name="osm_login_descr">Sie können sich mit der sicheren OAuth-Methode anmelden oder Ihren Benutzernamen und Ihr Passwort verwenden.</string>
+    <string name="shared_string_add_photo">Foto hinzufügen</string>
+    <string name="register_on_openplacereviews">Registrieren bei
+\nOpenPlaceReviews.org</string>
+    <string name="register_on_openplacereviews_desc">Fotos werden vom offenen Datenprojekt OpenPlaceReviews.org zur Verfügung gestellt. Um Ihre Fotos hochladen zu können, müssen Sie sich auf der Website anmelden.</string>
+    <string name="register_opr_create_new_account">Neues Konto erstellen</string>
+    <string name="register_opr_have_account">Ich habe bereits ein Konto</string>
+    <string name="shared_string_search_history">Suchverlauf</string>
+    <string name="app_mode_kayak">Kajak</string>
+    <string name="app_mode_motorboat">Motorboot</string>
+    <string name="add_to_mapillary">Zu Mapillary hinzufügen</string>
+    <string name="add_to_opr">Zu OpenPlaceReviews hinzufügen</string>
+    <string name="add_photos_descr">OsmAnd zeigt Fotos aus verschiedenen Quellen:
+\nOpenPlaceReviews - POI Fotos;
+\nMapillary - Bilder auf Straßenebene;
+\nWeb / Wikimedia - POI-Fotos gemäß OpenStreetMap-Daten.</string>
+    <string name="shared_string_resources">Quellen</string>
+    <string name="approximate_file_size">Ungefähre Dateigröße</string>
+    <string name="select_data_to_export">Wählen Sie die Daten aus, die in die Datei exportiert werden sollen.</string>
+    <string name="file_size_needed_for_import">Benötigt für Import</string>
+    <string name="export_not_enough_space_descr">Ihr Gerät hat nur %1$s Speicherplatz frei. Bitte machen Sie etwas Platz frei oder heben Sie die Auswahl einiger zu exportierender Objekte auf.</string>
+    <string name="export_not_enough_space">Es gibt nicht genug Speicherplatz</string>
+    <string name="select_groups_for_import">Wählen Sie Gruppen aus, die importiert werden sollen.</string>
+    <string name="select_items_for_import">Wählen Sie Elemente aus, die importiert werden sollen.</string>
+    <string name="use_dev_url_descr">Wechseln Sie zu dev.openstreetmap.org anstelle von openstreetmap.org, um das Hochladen von OSM-Hinweisen / POI / GPX zu testen.</string>
+    <string name="use_dev_url">dev.openstreetmap.org verwenden</string>
+    <string name="cannot_upload_image">Bild kann nicht hochgeladen werden, bitte versuchen Sie es später erneut</string>
+    <string name="select_picture">Bild auswählen</string>
+    <string name="ltr_or_rtl_combine_via_star">%1$s * %2$s</string>
+    <string name="elevation_data">Sie können Höhendaten verwenden, um Steigungen und Gefälle auf Ihrer Reise zu berücksichtigen</string>
+    <string name="app_mode_light_aircraft">Kleinflugzeug</string>
+    <string name="plan_route_split_before">Teilen vor</string>
+    <string name="plan_route_split_after">Teilen nach</string>
+    <string name="release_3_9">• Option zum Exportieren und Importieren aller Daten einschließlich Einstellungen, Ressourcen, meine Orte hinzugefügt
+\n
+\n• Route planen: Diagramme für Streckenabschnitte mit Route, und es wurde die Möglichkeit hinzugefügt, mehrere Streckenabschnitte zu erstellen und zu bearbeiten
+\n
+\n • OAuth-Authentifizierungsverfahren für OpenStreetMap hinzugefügt, verbesserte Benutzeroberfläche der OSM-Dialoge
+\n
+\n • Unterstützung benutzerdefinierter Farben für Favoriten und Track-Wegpunkte
+\n
+\n</string>
+    <string name="app_mode_gap">Lücke</string>
+    <string name="plan_route_join_segments">Segmente verbinden</string>
+    <string name="plan_route_add_new_segment">Neues Segment hinzufügen</string>
+    <string name="profile_type_osmand_string">OsmAnd-Profil</string>
+    <string name="profile_type_user_string">Benutzerprofil</string>
+    <string name="reverse_all_points">Alle Punkte umkehren</string>
+    <string name="profile_by_default_description">Wählen Sie das Profil, das beim Start der Anwendung verwendet werden soll.</string>
+    <string name="shared_string_last_used">Zuletzt verwendet</string>
+    <string name="routing_attr_prefer_hiking_routes_description">Wanderwege bevorzugen</string>
+    <string name="routing_attr_prefer_hiking_routes_name">Wanderwege bevorzugen</string>
+    <string name="routing_attr_allow_streams_description">Bäche und Entwässerungsgräben erlauben</string>
+    <string name="routing_attr_allow_streams_name">Bäche und Entwässerungsgräben erlauben</string>
+    <string name="routing_attr_allow_intermittent_description">Gewässer erlauben, die nicht ständig Wasser führen</string>
+    <string name="routing_attr_allow_intermittent_name">Gewässer erlauben, die nicht ständig Wasser führen</string>
+    <string name="voice_prompts_timetable">Zeiten der Sprachansagen</string>
+    <string name="add_online_routing_engine">Online Routenplaner hinzufügen</string>
+    <string name="edit_online_routing_engine">Online Routenplaner bearbeiten</string>
+    <string name="shared_string_vehicle">Fahrzeug</string>
+    <string name="shared_string_api_key">API Schlüssel</string>
+    <string name="shared_string_server_url">Server URL</string>
+    <string name="shared_string_enter_param">Parameter eingeben</string>
+    <string name="online_routing_example_hint">Die URL mit allen Parametern wird so aussehen:</string>
+    <string name="test_route_calculation">Routenberechnung testen</string>
+    <string name="routing_engine_vehicle_type_foot">Zu Fuß</string>
+    <string name="routing_engine_vehicle_type_bike">Fahrrad</string>
+    <string name="routing_engine_vehicle_type_car">Auto</string>
+    <string name="message_error_recheck_parameters">Fehler, Parameter erneut prüfen</string>
+    <string name="shared_string_subtype">Subtyp</string>
+    <string name="keep_it_empty_if_not">Leer lassen, wenn kein API-Schlüssel vorhanden</string>
+    <string name="copy_address">Adresse kopieren</string>
+    <string name="routing_engine_vehicle_type_driving">Fahren</string>
+    <string name="online_routing_engine">Online Navigationssystem</string>
+    <string name="online_routing_engines">Online Navigationssysteme</string>
+    <string name="shared_string_folders">Ordner</string>
+    <string name="select_folder">Ordner auswählen</string>
+    <string name="select_folder_descr">Ordner auswählen oder neuen hinzufügen</string>
+    <string name="shared_string_empty">Leer</string>
 </resources>

@@ -43,7 +43,6 @@ import net.osmand.osm.MapPoiTypes;
 import net.osmand.osm.io.NetworkUtils;
 import net.osmand.plus.AppInitializer.AppInitializeListener;
 import net.osmand.plus.access.AccessibilityMode;
-import net.osmand.plus.helpers.DayNightHelper;
 import net.osmand.plus.activities.ExitActivity;
 import net.osmand.plus.activities.MapActivity;
 import net.osmand.plus.activities.SavingTrackHelper;
@@ -57,13 +56,18 @@ import net.osmand.plus.download.DownloadIndexesThread;
 import net.osmand.plus.download.DownloadService;
 import net.osmand.plus.download.IndexItem;
 import net.osmand.plus.helpers.AvoidSpecificRoads;
-import net.osmand.plus.helpers.enums.DrivingRegion;
+import net.osmand.plus.helpers.DayNightHelper;
 import net.osmand.plus.helpers.LockHelper;
-import net.osmand.plus.helpers.enums.MetricsConstants;
 import net.osmand.plus.helpers.WaypointHelper;
+import net.osmand.plus.helpers.enums.DrivingRegion;
+import net.osmand.plus.helpers.enums.MetricsConstants;
 import net.osmand.plus.inapp.InAppPurchaseHelper;
 import net.osmand.plus.mapmarkers.MapMarkersDbHelper;
+import net.osmand.plus.mapmarkers.MapMarkersHelper;
+import net.osmand.plus.measurementtool.MeasurementEditingContext;
 import net.osmand.plus.monitoring.LiveMonitoringHelper;
+import net.osmand.plus.onlinerouting.OnlineRoutingHelper;
+import net.osmand.plus.osmedit.oauth.OsmOAuthHelper;
 import net.osmand.plus.poi.PoiFiltersHelper;
 import net.osmand.plus.quickaction.QuickActionRegistry;
 import net.osmand.plus.render.RendererRegistry;
@@ -77,7 +81,7 @@ import net.osmand.plus.settings.backend.OsmAndAppCustomization;
 import net.osmand.plus.settings.backend.OsmandSettings;
 import net.osmand.plus.settings.backend.backup.SettingsHelper;
 import net.osmand.plus.voice.CommandPlayer;
-import net.osmand.plus.wikivoyage.data.TravelDbHelper;
+import net.osmand.plus.wikivoyage.data.TravelHelper;
 import net.osmand.router.GeneralRouter;
 import net.osmand.router.RoutingConfiguration;
 import net.osmand.router.RoutingConfiguration.Builder;
@@ -108,17 +112,16 @@ public class OsmandApplication extends MultiDexApplication {
 	private static final org.apache.commons.logging.Log LOG = PlatformUtil.getLog(OsmandApplication.class);
 
 	final AppInitializer appInitializer = new AppInitializer(this);
-	OsmandSettings osmandSettings = null;
+	Handler uiHandler;
+	OsmandSettings osmandSettings;
 	OsmAndAppCustomization appCustomization;
+	NavigationService navigationService;
+	DownloadService downloadService;
+	OsmandAidlApi aidlApi;
+
 	private final SQLiteAPI sqliteAPI = new SQLiteAPIImpl(this);
 	private final OsmAndTaskManager taskManager = new OsmAndTaskManager(this);
 	private final UiUtilities iconsCache = new UiUtilities(this);
-	Handler uiHandler;
-
-	NavigationService navigationService;
-	DownloadService downloadService;
-
-	OsmandAidlApi aidlApi;
 
 	// start variables
 	ResourceManager resourceManager;
@@ -147,19 +150,20 @@ public class OsmandApplication extends MultiDexApplication {
 	OsmandRegions regions;
 	GeocodingLookupService geocodingLookupService;
 	QuickSearchHelper searchUICore;
-	TravelDbHelper travelDbHelper;
+	TravelHelper travelHelper;
 	InAppPurchaseHelper inAppPurchaseHelper;
 	MapViewTrackingUtilities mapViewTrackingUtilities;
 	LockHelper lockHelper;
 	SettingsHelper settingsHelper;
 	GpxDbHelper gpxDbHelper;
 	QuickActionRegistry quickActionRegistry;
+	OsmOAuthHelper osmOAuthHelper;
+	MeasurementEditingContext measurementEditingContext;
+	OnlineRoutingHelper onlineRoutingHelper;
 
 	private Resources localizedResources;
-
 	private Map<String, Builder> customRoutingConfigs = new ConcurrentHashMap<>();
-
-	private Locale preferredLocale = null;
+	private Locale preferredLocale;
 	private Locale defaultLocale;
 	private File externalStorageDirectory;
 	private boolean externalStorageDirectoryReadOnly;
@@ -368,8 +372,12 @@ public class OsmandApplication extends MultiDexApplication {
 		return settingsHelper;
 	}
 
+	public OsmOAuthHelper getOsmOAuthHelper() {
+		return osmOAuthHelper;
+	}
+
 	public synchronized DownloadIndexesThread getDownloadThread() {
-		if(downloadIndexesThread == null) {
+		if (downloadIndexesThread == null) {
 			downloadIndexesThread = new DownloadIndexesThread(this);
 		}
 		return downloadIndexesThread;
@@ -408,8 +416,8 @@ public class OsmandApplication extends MultiDexApplication {
 		if (defaultLocale == null) {
 			defaultLocale = Locale.getDefault();
 		}
-		if (!"".equals(lang)) {
-			if (!"".equals(country)) {
+		if (!Algorithms.isEmpty(lang)) {
+			if (!Algorithms.isEmpty(country)) {
 				preferredLocale = new Locale(lang, country);
 			} else {
 				preferredLocale = new Locale(lang);
@@ -417,9 +425,9 @@ public class OsmandApplication extends MultiDexApplication {
 		}
 		Locale selectedLocale = null;
 
-		if (!"".equals(lang) && !config.locale.equals(preferredLocale)) {
+		if (!Algorithms.isEmpty(lang) && !config.locale.equals(preferredLocale)) {
 			selectedLocale = preferredLocale;
-		} else if ("".equals(lang) && defaultLocale != null && Locale.getDefault() != defaultLocale) {
+		} else if (Algorithms.isEmpty(lang) && defaultLocale != null && Locale.getDefault() != defaultLocale) {
 			selectedLocale = defaultLocale;
 			preferredLocale = null;
 		}
@@ -461,6 +469,18 @@ public class OsmandApplication extends MultiDexApplication {
 		return routingHelper;
 	}
 
+	public MeasurementEditingContext getMeasurementEditingContext() {
+		return measurementEditingContext;
+	}
+
+	public void setMeasurementEditingContext(MeasurementEditingContext context) {
+		this.measurementEditingContext = context;
+	}
+
+	public OnlineRoutingHelper getOnlineRoutingHelper() {
+		return onlineRoutingHelper;
+	}
+
 	public TransportRoutingHelper getTransportRoutingHelper() {
 		return transportRoutingHelper;
 	}
@@ -477,8 +497,8 @@ public class OsmandApplication extends MultiDexApplication {
 		return searchUICore;
 	}
 
-	public TravelDbHelper getTravelDbHelper() {
-		return travelDbHelper;
+	public TravelHelper getTravelHelper() {
+		return travelHelper;
 	}
 
 	public InAppPurchaseHelper getInAppPurchaseHelper() {
@@ -533,7 +553,7 @@ public class OsmandApplication extends MultiDexApplication {
 		routingHelper.clearCurrentRoute(null, new ArrayList<LatLon>());
 		routingHelper.setRoutePlanningMode(false);
 		osmandSettings.LAST_ROUTING_APPLICATION_MODE = osmandSettings.APPLICATION_MODE.get();
-		osmandSettings.APPLICATION_MODE.set(osmandSettings.DEFAULT_APPLICATION_MODE.get());
+		osmandSettings.setApplicationMode(osmandSettings.DEFAULT_APPLICATION_MODE.get());
 		targetPointsHelper.removeAllWayPoints(false, false);
 	}
 
@@ -590,8 +610,7 @@ public class OsmandApplication extends MultiDexApplication {
 					while (getNavigationService() != null) {
 						try {
 							Thread.sleep(100);
-						}
-							catch (InterruptedException e) {
+						} catch (InterruptedException e) {
 						}
 					}
 
@@ -781,24 +800,40 @@ public class OsmandApplication extends MultiDexApplication {
 		setLanguage(c);
 		c.setTheme(themeResId);
 	}
-	
+
+	IBRouterService reconnectToBRouter() {
+		try {
+			bRouterServiceConnection = BRouterServiceConnection.connect(this);
+			if (bRouterServiceConnection != null) {
+				return bRouterServiceConnection.getBrouterService();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
 	public IBRouterService getBRouterService() {
-		if(bRouterServiceConnection == null) {
+		if (bRouterServiceConnection == null) {
 			return null;
 		}
-		return bRouterServiceConnection.getBrouterService();
+		IBRouterService s = bRouterServiceConnection.getBrouterService();
+		if (s != null && !s.asBinder().isBinderAlive()) {
+			s = reconnectToBRouter();
+		}
+		return s;
 	}
-	
+
 	public void setLanguage(Context context) {
 		if (preferredLocale != null) {
 			Configuration config = context.getResources().getConfiguration();
 			String lang = preferredLocale.getLanguage();
-			if (!"".equals(lang) && !config.locale.getLanguage().equals(lang)) {
+			if (!Algorithms.isEmpty(lang) && !config.locale.getLanguage().equals(lang)) {
 				preferredLocale = new Locale(lang);
 				Locale.setDefault(preferredLocale);
 				config.locale = preferredLocale;
 				context.getResources().updateConfiguration(config, context.getResources().getDisplayMetrics());
-			} else if("".equals(lang) && defaultLocale != null && Locale.getDefault() != defaultLocale) {
+			} else if (Algorithms.isEmpty(lang) && defaultLocale != null && Locale.getDefault() != defaultLocale) {
 				Locale.setDefault(defaultLocale);
 				config.locale = defaultLocale;
 				getBaseContext().getResources().updateConfiguration(config, getBaseContext().getResources().getDisplayMetrics());
@@ -926,34 +961,14 @@ public class OsmandApplication extends MultiDexApplication {
 		}
 	}
 
-
-	public int navigationServiceGpsInterval(int interval) {
-		// Issue 5632 Workaround: Keep GPS always on instead of using AlarmManager, as API>=19 restricts repeated AlarmManager reception
-		// Maybe do not apply to API=19 devices, many still behave acceptably (often restriction not worse than 1/min)
-		if ((Build.VERSION.SDK_INT > 19) && (getSettings().SAVE_GLOBAL_TRACK_INTERVAL.get() < 5 * 60000)) {
-			return 0;
-		}
-		// Default: Save battery power by turning off GPS between measurements
-		if (interval >= 30000) {
-			return interval;
-		// GPS continuous
-		} else {
-			return 0;
-		}
-	}
-
-
-	public void startNavigationService(int intent, int interval) {
+	public void startNavigationService(int intent) {
 		final Intent serviceIntent = new Intent(this, NavigationService.class);
-		
 		if (getNavigationService() != null) {
 			intent |= getNavigationService().getUsedBy();
-			interval = Math.min(getNavigationService().getServiceOffInterval(), interval);
 			getNavigationService().stopSelf();
 			
 		}
 		serviceIntent.putExtra(NavigationService.USAGE_INTENT, intent);
-		serviceIntent.putExtra(NavigationService.USAGE_OFF_INTERVAL, interval);
 		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 			startForegroundService(serviceIntent);
 		} else {

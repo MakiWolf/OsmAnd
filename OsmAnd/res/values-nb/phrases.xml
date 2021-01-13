@@ -372,7 +372,7 @@
     <string name="poi_aerodrome_type_regional">Regional</string>
     <string name="poi_internet_access_type">Internettilgangstype</string>
     <string name="poi_bicycle_service">Sykkelservice</string>
-    <string name="poi_fire_hydrant_water_source">Vannkilde</string>
+    <string name="poi_water_source">Vannkilde</string>
     <string name="poi_payment_toll_type">Betalingstype</string>
     <string name="poi_traffic_signals_sound">Lyd</string>
     <string name="poi_self_service">Selvbetjening</string>
@@ -630,7 +630,7 @@
     <string name="poi_pump">Pumpe</string>
     <string name="poi_telescope_type">Type</string>
     <string name="poi_animal_training_type">Type</string>
-    <string name="poi_embassy_type">Type</string>
+    <string name="poi_diplomatic_filter">Type</string>
     <string name="poi_healthcare_alternative_types">Spesialitet</string>
     <string name="poi_free_flying_characteristics">Kjennetegn</string>
     <string name="poi_archaeological_site_type">Type</string>
@@ -1552,7 +1552,7 @@
     <string name="poi_sms">SMS</string>
     <string name="poi_osmand_fire_hydrant_pressure_suction">Undertrykk</string>
     <string name="poi_osmand_fire_hydrant_pressure_pressurized">Under trykk</string>
-    <string name="poi_fire_hydrant_style_water_source_groundwater">Grunnvann</string>
+    <string name="poi_water_source_groundwater">Grunnvann</string>
     <string name="poi_fire_hydrant_type_pipe">Rør</string>
     <string name="poi_drinking_water_refill_network">Nettverk for påfyll av drikkevann</string>
     <string name="poi_drinking_water_refill_no">Drikkevannspåfylling: Nei</string>

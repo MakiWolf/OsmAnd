@@ -602,7 +602,7 @@ public class SearchCoreFactory {
 							sr.localeName = object.getName(phrase.getSettings().getLang(),
 									phrase.getSettings().isTransliterate());
 							if (!nm.matches(sr.localeName) && !nm.matches(sr.otherNames)
-									&& !nm.matches(object.getAdditionalInfo().values())) {
+									&& !nm.matches(object.getAdditionalInfoValues(false))) {
 								return false;
 							}
 							sr.object = object;
@@ -650,7 +650,7 @@ public class SearchCoreFactory {
 			if (p.hasObjectType(ObjectType.POI_TYPE)) {
 				return -1;
 			}
-			if (p.getUnknownWordToSearch().length() >= FIRST_WORD_MIN_LENGTH || p.getRadiusLevel() > 1) {
+			if (p.getUnknownWordToSearch().length() >= FIRST_WORD_MIN_LENGTH || p.isFirstUnknownSearchWordComplete()) {
 				return SEARCH_AMENITY_BY_NAME_API_PRIORITY_IF_3_CHAR;
 			}
 			return -1;
@@ -719,9 +719,10 @@ public class SearchCoreFactory {
 					results.put(res.pt.getKeyName(), res);
 				}
 			}
-			if (nmAdditional != null) {
-				addAditonals(nmAdditional, results, types.getOtherMapCategory());
-			}
+			// don't spam results with unsearchable additionals like 'description', 'email', ...
+			// if (nmAdditional != null) {
+			//	addAditonals(nmAdditional, results, types.getOtherMapCategory());
+			// }
 			for (PoiCategory c : categories) {
 				PoiTypeResult res = checkPoiType(nm, c);
 				if(res != null) {
@@ -1059,7 +1060,7 @@ public class SearchCoreFactory {
 					if (!poiAdditionals.isEmpty()) {
 						boolean found = false;
 						for (String add : poiAdditionals) {
-							if(object.getAdditionalInfo().containsKey(add)) {
+							if (object.getAdditionalInfoKeys().contains(add)) {
 								found = true;
 								break;
 							}

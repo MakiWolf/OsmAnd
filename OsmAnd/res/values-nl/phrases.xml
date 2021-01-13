@@ -1267,7 +1267,7 @@
     <string name="poi_piste_difficulty_advanced">Moeilijk</string>
     <string name="poi_piste_difficulty_novice">Beginner</string>
     <string name="poi_piste_difficulty_expert">Expert</string>
-    <string name="poi_piste_difficulty_freeride">Freeride</string>
+    <string name="poi_piste_difficulty_freeride">Gratis rit</string>
     <string name="poi_piste_grooming_classic">Klassiek</string>
     <string name="poi_piste_grooming_classic_skating">Klassiek en skating</string>
     <string name="poi_piste_grooming_backcountry">Uithoek</string>
@@ -1398,7 +1398,7 @@
     <string name="poi_shoes_type">Soort</string>
     <string name="poi_fire_hydrant_type">Soort</string>
     <string name="poi_fire_hydrant_position">Plaatsing</string>
-    <string name="poi_fire_hydrant_water_source">Waterherkomst</string>
+    <string name="poi_water_source">Waterherkomst</string>
     <string name="poi_payment_toll_type">Betalingswijze</string>
     <string name="poi_traffic_signals_sound">Geluidssignaal</string>
     <string name="poi_highway_crossing_type">Soort</string>
@@ -1418,7 +1418,7 @@
     <string name="poi_observatory_designation">Aanduiding</string>
     <string name="poi_telescope_type">Type</string>
     <string name="poi_animal_training_type">Type</string>
-    <string name="poi_embassy_type">Type</string>
+    <string name="poi_diplomatic_filter">Type</string>
     <string name="poi_city_capital">Hoofdstad</string>
     <string name="poi_pharmacy_dispensing">Apotheek</string>
     <string name="poi_healthcare_alternative_types">Gespecialiseerd</string>
@@ -3090,9 +3090,9 @@
     <string name="poi_fire_hydrant_position_green">Dries</string>
     <string name="poi_fire_hydrant_position_lane">Rijbaan</string>
     <string name="poi_fire_hydrant_style_wsh">Brandkraan: schacht</string>
-    <string name="poi_fire_hydrant_style_water_source_main">Hoofdleiding</string>
-    <string name="poi_fire_hydrant_style_water_source_pond">Vijver</string>
-    <string name="poi_fire_hydrant_style_water_source_stream">Waterloop</string>
+    <string name="poi_water_source_main">Hoofdleiding</string>
+    <string name="poi_water_source_pond">Vijver</string>
+    <string name="poi_water_source_stream">Waterloop</string>
     <string name="poi_fire_hydrant_style_water_source_cistern">Citerne</string>
     <string name="poi_in_service_yes">In dienst: ja</string>
     <string name="poi_street_cabinet_power">Kast type: stroom</string>

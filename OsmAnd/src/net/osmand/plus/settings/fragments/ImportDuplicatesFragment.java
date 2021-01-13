@@ -32,6 +32,9 @@ import net.osmand.plus.R;
 import net.osmand.plus.UiUtilities;
 import net.osmand.plus.base.BaseOsmAndFragment;
 import net.osmand.plus.helpers.AvoidSpecificRoads.AvoidRoadInfo;
+import net.osmand.plus.helpers.SearchHistoryHelper.HistoryEntry;
+import net.osmand.plus.mapmarkers.MapMarker;
+import net.osmand.plus.onlinerouting.OnlineRoutingEngine;
 import net.osmand.plus.osmedit.OpenstreetmapPoint;
 import net.osmand.plus.osmedit.OsmNotesPoint;
 import net.osmand.plus.poi.PoiUIFilter;
@@ -48,8 +51,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import static net.osmand.plus.settings.backend.backup.FileSettingsItem.*;
-import static net.osmand.plus.settings.fragments.ImportSettingsFragment.IMPORT_SETTINGS_TAG;
+import static net.osmand.plus.settings.backend.backup.FileSettingsItem.FileSubtype;
+import static net.osmand.plus.settings.fragments.BaseSettingsListFragment.SETTINGS_LIST_TAG;
 
 
 public class ImportDuplicatesFragment extends BaseOsmAndFragment {
@@ -69,7 +72,7 @@ public class ImportDuplicatesFragment extends BaseOsmAndFragment {
 	private SettingsHelper settingsHelper;
 
 	public static void showInstance(@NonNull FragmentManager fm, List<? super Object> duplicatesList,
-	                                List<SettingsItem> settingsItems, File file, Fragment targetFragment) {
+									List<SettingsItem> settingsItems, File file, Fragment targetFragment) {
 		ImportDuplicatesFragment fragment = new ImportDuplicatesFragment();
 		fragment.setTargetFragment(targetFragment, 0);
 		fragment.setDuplicatesList(duplicatesList);
@@ -77,7 +80,7 @@ public class ImportDuplicatesFragment extends BaseOsmAndFragment {
 		fragment.setFile(file);
 		fm.beginTransaction()
 				.replace(R.id.fragmentContainer, fragment, TAG)
-				.addToBackStack(IMPORT_SETTINGS_TAG)
+				.addToBackStack(SETTINGS_LIST_TAG)
 				.commitAllowingStateLoss();
 	}
 
@@ -200,6 +203,10 @@ public class ImportDuplicatesFragment extends BaseOsmAndFragment {
 		List<File> ttsVoiceFilesList = new ArrayList<>();
 		List<File> voiceFilesList = new ArrayList<>();
 		List<File> mapFilesList = new ArrayList<>();
+		List<MapMarker> mapMarkers = new ArrayList<>();
+		List<MapMarker> mapMarkersGroups = new ArrayList<>();
+		List<HistoryEntry> historyEntries = new ArrayList<>();
+		List<OnlineRoutingEngine> onlineRoutingEngines = new ArrayList<>();
 
 		for (Object object : duplicatesList) {
 			if (object instanceof ApplicationMode.ApplicationModeBean) {
@@ -236,6 +243,17 @@ public class ImportDuplicatesFragment extends BaseOsmAndFragment {
 				osmNotesPointList.add((OsmNotesPoint) object);
 			} else if (object instanceof OpenstreetmapPoint) {
 				osmEditsPointList.add((OpenstreetmapPoint) object);
+			} else if (object instanceof MapMarker) {
+				MapMarker mapMarker = (MapMarker) object;
+				if (mapMarker.history) {
+					mapMarkers.add(mapMarker);
+				} else {
+					mapMarkersGroups.add(mapMarker);
+				}
+			} else if (object instanceof HistoryEntry) {
+				historyEntries.add((HistoryEntry) object);
+			} else if (object instanceof OnlineRoutingEngine) {
+				onlineRoutingEngines.add((OnlineRoutingEngine) object);
 			}
 		}
 		if (!profiles.isEmpty()) {
@@ -297,6 +315,18 @@ public class ImportDuplicatesFragment extends BaseOsmAndFragment {
 		if (!voiceFilesList.isEmpty()) {
 			duplicates.add(getString(R.string.local_indexes_cat_voice));
 			duplicates.addAll(voiceFilesList);
+		}
+		if (!mapMarkers.isEmpty()) {
+			duplicates.add(getString(R.string.map_markers));
+			duplicates.addAll(mapMarkers);
+		}
+		if (!mapMarkersGroups.isEmpty()) {
+			duplicates.add(getString(R.string.markers_history));
+			duplicates.addAll(mapMarkersGroups);
+		}
+		if (!onlineRoutingEngines.isEmpty()) {
+			duplicates.add(getString(R.string.online_routing_engines));
+			duplicates.addAll(onlineRoutingEngines);
 		}
 		return duplicates;
 	}

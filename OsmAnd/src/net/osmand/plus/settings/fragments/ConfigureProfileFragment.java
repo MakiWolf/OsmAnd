@@ -31,19 +31,20 @@ import androidx.recyclerview.widget.RecyclerView;
 import net.osmand.AndroidUtils;
 import net.osmand.IndexConstants;
 import net.osmand.PlatformUtil;
-import net.osmand.plus.settings.backend.ApplicationMode;
 import net.osmand.plus.OsmandApplication;
 import net.osmand.plus.OsmandPlugin;
 import net.osmand.plus.R;
-import net.osmand.plus.settings.backend.backup.SettingsHelper;
-import net.osmand.plus.settings.backend.backup.SettingsHelper.SettingsCollectListener;
 import net.osmand.plus.UiUtilities;
 import net.osmand.plus.activities.MapActivity;
+import net.osmand.plus.development.OsmandDevelopmentPlugin;
 import net.osmand.plus.helpers.AndroidUiHelper;
 import net.osmand.plus.helpers.FontCache;
 import net.osmand.plus.openseamapsplugin.NauticalMapsPlugin;
 import net.osmand.plus.profiles.SelectCopyAppModeBottomSheet;
 import net.osmand.plus.profiles.SelectCopyAppModeBottomSheet.CopyAppModePrefsListener;
+import net.osmand.plus.settings.backend.ApplicationMode;
+import net.osmand.plus.settings.backend.backup.SettingsHelper;
+import net.osmand.plus.settings.backend.backup.SettingsHelper.SettingsCollectListener;
 import net.osmand.plus.settings.backend.backup.SettingsItem;
 import net.osmand.plus.settings.bottomsheets.ResetProfilePrefsBottomSheet;
 import net.osmand.plus.settings.bottomsheets.ResetProfilePrefsBottomSheet.ResetAppModePrefsListener;
@@ -345,6 +346,12 @@ public class ConfigureProfileFragment extends BaseSettingsFragment implements Co
 		if (mode.isCustomProfile() && !getBackupFileForCustomMode(app, mode.getStringKey()).exists()) {
 			resetToDefault.setVisible(false);
 		} else {
+			OsmandDevelopmentPlugin plugin = OsmandPlugin.getEnabledPlugin(OsmandDevelopmentPlugin.class);
+			if (plugin != null && mode.getParent() != null) {
+				String baseProfile = "(" + mode.getParent().toHumanString() + ")";
+				String title = getString(R.string.ltr_or_rtl_combine_via_space, getString(R.string.reset_to_default), baseProfile);
+				resetToDefault.setTitle(title);
+			}
 			resetToDefault.setIcon(app.getUIUtilities().getIcon(R.drawable.ic_action_reset_to_default_dark,
 					isNightMode() ? R.color.active_color_primary_dark : R.color.active_color_primary_light));
 		}
@@ -410,7 +417,7 @@ public class ConfigureProfileFragment extends BaseSettingsFragment implements Co
 						if (!ApplicationMode.values(app).contains(selectedMode)) {
 							ApplicationMode.changeProfileAvailability(selectedMode, true, app);
 						}
-						settings.APPLICATION_MODE.set(selectedMode);
+						settings.setApplicationMode(selectedMode);
 						fragmentManager.beginTransaction()
 								.remove(this)
 								.addToBackStack(TAG)
@@ -433,10 +440,7 @@ public class ConfigureProfileFragment extends BaseSettingsFragment implements Co
 		} else if (EXPORT_PROFILE.equals(prefId)) {
 			FragmentManager fragmentManager = getFragmentManager();
 			if (fragmentManager != null) {
-				ExportProfileBottomSheet.showInstance(
-						fragmentManager,
-						this,
-						getSelectedAppMode(), false);
+				ExportSettingsFragment.showInstance(fragmentManager, getSelectedAppMode(), false);
 			}
 		} else if (DELETE_PROFILE.equals(prefId)) {
 			onDeleteProfileClick();

@@ -55,7 +55,7 @@ public class GPXUtilities {
 	private static final String GAP_PROFILE_TYPE = "gap";
 	private static final String TRKPT_INDEX_EXTENSION = "trkpt_idx";
 
-	private final static String GPX_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss'Z'"; //$NON-NLS-1$
+	public final static String GPX_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss'Z'"; //$NON-NLS-1$
 	private final static String GPX_TIME_FORMAT_MILLIS = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"; //$NON-NLS-1$
 
 	private final static NumberFormat latLonFormat = new DecimalFormat("0.00#####", new DecimalFormatSymbols(
@@ -1247,7 +1247,7 @@ public class GPXUtilities {
 					}
 				}
 			}
-			g.prepareInformation(fileTimestamp, splitSegments.toArray(new SplitSegment[splitSegments.size()]));
+			g.prepareInformation(fileTimestamp, splitSegments.toArray(new SplitSegment[0]));
 			return g;
 		}
 
@@ -1790,6 +1790,7 @@ public class GPXUtilities {
 				serializer.attribute(null, "creator", file.author); //$NON-NLS-1$
 			}
 			serializer.attribute(null, "xmlns", "http://www.topografix.com/GPX/1/1"); //$NON-NLS-1$ //$NON-NLS-2$
+			serializer.attribute(null, "xmlns:osmand", "https://osmand.net");
 			serializer.attribute(null, "xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
 			serializer.attribute(null, "xsi:schemaLocation",
 					"http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd");
@@ -1938,7 +1939,7 @@ public class GPXUtilities {
 			serializer.startTag(null, "extensions");
 			if (!extensions.isEmpty()) {
 				for (Entry<String, String> s : extensions.entrySet()) {
-					writeNotNullText(serializer, s.getKey(), s.getValue());
+					writeNotNullText(serializer,"osmand:" + s.getKey(), s.getValue());
 				}
 			}
 			if (extensionsWriter != null) {
@@ -2544,7 +2545,7 @@ public class GPXUtilities {
 			if (maxlat == null) {
 				maxlat = parser.getAttributeValue("", "maxLat");
 			}
-			if (maxlat == null) {
+			if (maxlon == null) {
 				maxlon = parser.getAttributeValue("", "maxLon");
 			}
 

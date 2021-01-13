@@ -96,6 +96,7 @@
         <item name="btn_round">@drawable/btn_round_light</item>
         <item name="btn_round_border">@drawable/btn_round_border_light</item>
         <item name="btn_round_border_2">@drawable/btn_round_border_light_2</item>
+        <item name="bg_round_btn">@drawable/bg_round_btn_light</item>
         <item name="bg_card">@drawable/bg_card_light</item>
         <item name="context_menu_card">@drawable/context_menu_card_light</item>
         <item name="bg_map_context_menu">@drawable/bg_map_context_menu_light</item>
@@ -245,6 +246,7 @@
         <item name="btn_radio_button_center">@drawable/radio_button_center_light</item>
         <item name="checkboxStyle">@style/CheckboxStyle</item>
         <item name="radioButtonStyle">@style/RadioButtonStyle</item>
+        <item name="text_input_background">@color/text_input_background_light</item>
     </style>
 
     <style name="ToolbarStyle" parent="@style/Widget.AppCompat.Toolbar">
@@ -399,6 +401,7 @@
         <item name="btn_round">@drawable/btn_round_dark</item>
         <item name="btn_round_border">@drawable/btn_round_border_dark</item>
         <item name="btn_round_border_2">@drawable/btn_round_border_dark_2</item>
+        <item name="bg_round_btn">@drawable/bg_round_btn_dark</item>
         <item name="bg_card">@drawable/bg_card_dark</item>
         <item name="context_menu_card">@drawable/context_menu_card_dark</item>
         <item name="bg_map_context_menu">@drawable/bg_map_context_menu_dark</item>
@@ -539,6 +542,7 @@
         <item name="btn_radio_button_center">@drawable/radio_button_center_dark</item>
         <item name="checkboxStyle">@style/CheckboxStyle</item>
         <item name="radioButtonStyle">@style/RadioButtonStyle</item>
+        <item name="text_input_background">@color/text_input_background_dark</item>
     </style>
 
     <style name="FreeVersionBanner" parent="OsmandDarkTheme">

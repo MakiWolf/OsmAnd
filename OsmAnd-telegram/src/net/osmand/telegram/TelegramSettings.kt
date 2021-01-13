@@ -505,6 +505,8 @@ class TelegramSettings(private val app: TelegramApplication) {
 			val currentTimeMillis = System.currentTimeMillis()
 			val currentTime = currentTimeMillis / 1000
 			statusChangeTime = currentTimeMillis
+			val gpsEnabled = false
+			/*
 			val lm = app.getSystemService(Context.LOCATION_SERVICE) as LocationManager
 			val gpsEnabled = try {
 				if (lm.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
@@ -518,6 +520,7 @@ class TelegramSettings(private val app: TelegramApplication) {
 			} catch (ex: Exception) {
 				false
 			}
+			*/
 
 			var initializing = false
 			var sendChatsErrors = false
@@ -699,18 +702,20 @@ class TelegramSettings(private val app: TelegramApplication) {
 
 		val hiddenChats = mutableSetOf<Long>()
 		val hiddenChatsSet = prefs.getStringSet(HIDDEN_ON_MAP_CHATS_KEY, mutableSetOf())
-		for (chatId in hiddenChatsSet) {
-			hiddenChats.add(chatId.toLong())
+		hiddenChatsSet?.let {
+			for (chatId in it) {
+				hiddenChats.add(chatId.toLong())
+			}
 		}
 		hiddenOnMapChats = hiddenChats
 
 		metricsConstants = MetricsConstants.valueOf(
-			prefs.getString(METRICS_CONSTANTS_KEY, MetricsConstants.KILOMETERS_AND_METERS.name)
+			prefs.getString(METRICS_CONSTANTS_KEY, MetricsConstants.KILOMETERS_AND_METERS.name)!!
 		)
 		speedConstants = SpeedConstants.valueOf(
-			prefs.getString(SPEED_CONSTANTS_KEY, SpeedConstants.KILOMETERS_PER_HOUR.name)
+			prefs.getString(SPEED_CONSTANTS_KEY, SpeedConstants.KILOMETERS_PER_HOUR.name)!!
 		)
-		utcOffset = prefs.getString(UTC_OFFSET_CONSTANTS_KEY, DataConstants.UTC_FORMAT)
+		utcOffset = prefs.getString(UTC_OFFSET_CONSTANTS_KEY, DataConstants.UTC_FORMAT)!!
 
 		try {
 			parseShareChatsInfo(JSONArray(prefs.getString(SHARE_CHATS_INFO_KEY, "")))
@@ -724,7 +729,7 @@ class TelegramSettings(private val app: TelegramApplication) {
 			log.error(e)
 		}
 
-		parseShareDevices(prefs.getString(SHARE_DEVICES_KEY, ""))
+		parseShareDevices(prefs.getString(SHARE_DEVICES_KEY, "")!!)
 
 		val sendMyLocDef = SEND_MY_LOC_VALUES_SEC[SEND_MY_LOC_DEFAULT_INDEX]
 		sendMyLocInterval = prefs.getLong(SEND_MY_LOC_INTERVAL_KEY, sendMyLocDef)
@@ -733,7 +738,7 @@ class TelegramSettings(private val app: TelegramApplication) {
 		val locHistoryDef = LOC_HISTORY_VALUES_SEC[LOC_HISTORY_DEFAULT_INDEX]
 		locHistoryTime = prefs.getLong(LOC_HISTORY_TIME_KEY, locHistoryDef)
 		val shareTypeDef = SHARE_TYPE_VALUES[SHARE_TYPE_DEFAULT_INDEX]
-		shareTypeValue = prefs.getString(SHARE_TYPE_KEY, shareTypeDef)
+		shareTypeValue = prefs.getString(SHARE_TYPE_KEY, shareTypeDef)!!
 
 		val minLocationDistanceDef = MIN_LOCATION_DISTANCE[MIN_LOCATION_DISTANCE_INDEX]
 		minLocationDistance = prefs.getFloat(MIN_LOCATION_DISTANCE_KEY, minLocationDistanceDef)
@@ -743,13 +748,13 @@ class TelegramSettings(private val app: TelegramApplication) {
 		minLocationSpeed = prefs.getFloat(MIN_LOCATION_SPEED_KEY, minLocationSpeedDef)
 
 		val currentUserId = app.telegramHelper.getCurrentUserId()
-		currentSharingMode = prefs.getString(SHARING_MODE_KEY, if (currentUserId != -1) currentUserId.toString() else "")
+		currentSharingMode = prefs.getString(SHARING_MODE_KEY, if (currentUserId != -1) currentUserId.toString() else "")!!
 
 		val defPackage = if (AppConnect.getInstalledApps(app).size == 1) AppConnect.getInstalledApps(app).first().appPackage else ""
-		appToConnectPackage = prefs.getString(APP_TO_CONNECT_PACKAGE_KEY, defPackage)
+		appToConnectPackage = prefs.getString(APP_TO_CONNECT_PACKAGE_KEY, defPackage)!!
 
 		liveNowSortType = LiveNowSortType.valueOf(
-			prefs.getString(LIVE_NOW_SORT_TYPE_KEY, LiveNowSortType.SORT_BY_DISTANCE.name)
+			prefs.getString(LIVE_NOW_SORT_TYPE_KEY, LiveNowSortType.SORT_BY_DISTANCE.name)!!
 		)
 
 		batteryOptimisationAsked = prefs.getBoolean(BATTERY_OPTIMISATION_ASKED,false)

@@ -134,6 +134,21 @@ class SettingsItemsFactory {
 			case FAVOURITES:
 				item = new FavoritesSettingsItem(app, json);
 				break;
+			case ACTIVE_MARKERS:
+				item = new MarkersSettingsItem(app, json);
+				break;
+			case HISTORY_MARKERS:
+				item = new HistoryMarkersSettingsItem(app, json);
+				break;
+			case SEARCH_HISTORY:
+				item = new SearchHistorySettingsItem(app, json);
+				break;
+			case GPX:
+				item = new GpxSettingsItem(app, json);
+				break;
+			case ONLINE_ROUTING_ENGINES:
+				item = new OnlineRoutingSettingsItem(app, json);
+				break;
 		}
 		return item;
 	}

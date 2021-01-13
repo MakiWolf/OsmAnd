@@ -1,17 +1,7 @@
 package net.osmand.data;
 
-import net.osmand.Location;
-import net.osmand.osm.MapPoiTypes;
-import net.osmand.osm.PoiCategory;
-import net.osmand.util.Algorithms;
-
-import org.json.JSONObject;
-
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -21,9 +11,14 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.zip.GZIPInputStream;
+
+import org.json.JSONObject;
 
 import gnu.trove.list.array.TIntArrayList;
+import net.osmand.Location;
+import net.osmand.osm.MapPoiTypes;
+import net.osmand.osm.PoiCategory;
+import net.osmand.util.Algorithms;
 
 
 public class Amenity extends MapObject {
@@ -44,6 +39,13 @@ public class Amenity extends MapObject {
 	public static final String REF = "ref";
 	public static final String OSM_DELETE_VALUE = "delete";
 	public static final String OSM_DELETE_TAG = "osmand_change";
+	public static final String IMAGE_TITLE = "image_title";
+	public static final String IS_PART = "is_part";
+	public static final String IS_AGGR_PART = "is_aggr_part";
+	public static final String CONTENT_JSON = "content_json";
+	public static final String ROUTE_ID = "route_id";
+	public static final String ROUTE_SOURCE = "route_source";
+
 
 	private String subType;
 	private PoiCategory type;
@@ -96,11 +98,45 @@ public class Amenity extends MapObject {
 	}
 
 
-	public Map<String, String> getAdditionalInfo() {
+	// this method should be used carefully
+	public Map<String, String> getInternalAdditionalInfoMap() {
 		if (additionalInfo == null) {
 			return Collections.emptyMap();
 		}
 		return additionalInfo;
+	}
+	
+	public Collection<String> getAdditionalInfoValues(boolean excludeZipped) {
+		if (additionalInfo == null) {
+			return Collections.emptyList();
+		}
+		boolean zipped = false;
+		for(String v : additionalInfo.values()) {
+			if(isContentZipped(v)) {
+				zipped = true;
+				break;
+			}
+		}
+		if(zipped) {
+			List<String> r = new ArrayList<>(additionalInfo.size());
+			for(String str : additionalInfo.values()) {
+				if(excludeZipped && isContentZipped(str)) {
+					
+				} else {
+					r.add(unzipContent(str));
+				}
+			}
+			return r;
+		} else {
+			return additionalInfo.values();
+		}
+	}
+	
+	public Collection<String> getAdditionalInfoKeys() {
+		if (additionalInfo == null) {
+			return Collections.emptyList();
+		}
+		return additionalInfo.keySet();
 	}
 
 	public void setAdditionalInfo(Map<String, String> additionalInfo) {
@@ -134,7 +170,7 @@ public class Amenity extends MapObject {
 			}
 			this.additionalInfo.put(tag, value);
 			if (OPENING_HOURS.equals(tag)) {
-				this.openingHours = value;
+				this.openingHours = unzipContent(value);
 			}
 		}
 	}
@@ -182,7 +218,7 @@ public class Amenity extends MapObject {
 		}
 		int maxLen = 0;
 		String lng = defLang;
-		for (String nm : getAdditionalInfo().keySet()) {
+		for (String nm : getAdditionalInfoKeys()) {
 			if (nm.startsWith(tag + ":")) {
 				String key = nm.substring(tag.length() + 1);
 				String cnt = getAdditionalInfo(tag + ":" + key);
@@ -204,7 +240,7 @@ public class Amenity extends MapObject {
 
 	public List<String> getNames(String tag, String defTag) {
 		List<String> l = new ArrayList<String>();
-		for (String nm : getAdditionalInfo().keySet()) {
+		for (String nm : getAdditionalInfoKeys()) {
 			if (nm.startsWith(tag + ":")) {
 				l.add(nm.substring(tag.length() + 1));
 			} else if (nm.equals(tag)) {
@@ -229,7 +265,7 @@ public class Amenity extends MapObject {
 		if (!Algorithms.isEmpty(enName)) {
 			return enName;
 		}
-		for (String nm : getAdditionalInfo().keySet()) {
+		for (String nm : getAdditionalInfoKeys()) {
 			if (nm.startsWith(tag + ":")) {
 				return getAdditionalInfo(nm);
 			}
@@ -345,4 +381,6 @@ public class Amenity extends MapObject {
 		}
 		return a;
 	}
+
+	
 }

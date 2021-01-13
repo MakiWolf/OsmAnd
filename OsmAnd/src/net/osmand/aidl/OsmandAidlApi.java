@@ -19,7 +19,6 @@ import android.view.KeyEvent;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -41,8 +40,10 @@ import net.osmand.aidl.navigation.ADirectionInfo;
 import net.osmand.aidl.navigation.OnVoiceNavigationParams;
 import net.osmand.aidl.quickaction.QuickActionInfoParams;
 import net.osmand.aidl.tiles.ASqliteDbFile;
+import net.osmand.aidlapi.customization.AProfile;
 import net.osmand.aidlapi.info.AppInfoParams;
 import net.osmand.aidlapi.map.ALatLon;
+import net.osmand.aidlapi.navigation.ABlockedRoad;
 import net.osmand.data.FavouritePoint;
 import net.osmand.data.LatLon;
 import net.osmand.data.PointDescription;
@@ -51,23 +52,25 @@ import net.osmand.plus.AppInitializer.AppInitializeListener;
 import net.osmand.plus.AppInitializer.InitEvents;
 import net.osmand.plus.ContextMenuAdapter;
 import net.osmand.plus.ContextMenuItem;
+import net.osmand.plus.CustomOsmandPlugin;
 import net.osmand.plus.FavouritesDbHelper;
 import net.osmand.plus.GPXDatabase.GpxDataItem;
 import net.osmand.plus.GpxSelectionHelper;
 import net.osmand.plus.GpxSelectionHelper.SelectedGpxFile;
-import net.osmand.plus.MapMarkersHelper;
-import net.osmand.plus.MapMarkersHelper.MapMarker;
 import net.osmand.plus.OsmandApplication;
 import net.osmand.plus.OsmandPlugin;
 import net.osmand.plus.SQLiteTileSource;
 import net.osmand.plus.activities.MapActivity;
 import net.osmand.plus.audionotes.AudioVideoNotesPlugin;
 import net.osmand.plus.dialogs.GpxAppearanceAdapter;
+import net.osmand.plus.helpers.AvoidSpecificRoads.AvoidRoadInfo;
 import net.osmand.plus.helpers.ColorDialogs;
 import net.osmand.plus.helpers.ExternalApiHelper;
 import net.osmand.plus.helpers.LockHelper;
 import net.osmand.plus.mapcontextmenu.MapContextMenu;
 import net.osmand.plus.mapcontextmenu.other.IContextMenuButtonListener;
+import net.osmand.plus.mapmarkers.MapMarker;
+import net.osmand.plus.mapmarkers.MapMarkersHelper;
 import net.osmand.plus.monitoring.OsmandMonitoringPlugin;
 import net.osmand.plus.myplaces.TrackBitmapDrawer;
 import net.osmand.plus.quickaction.QuickAction;
@@ -77,13 +80,15 @@ import net.osmand.plus.routing.IRoutingDataUpdateListener;
 import net.osmand.plus.routing.RouteCalculationResult.NextDirectionInfo;
 import net.osmand.plus.routing.RouteDirectionInfo;
 import net.osmand.plus.routing.RoutingHelper;
+import net.osmand.plus.routing.RoutingHelperUtils;
 import net.osmand.plus.routing.VoiceRouter;
 import net.osmand.plus.settings.backend.ApplicationMode;
+import net.osmand.plus.settings.backend.ApplicationMode.ApplicationModeBean;
+import net.osmand.plus.settings.backend.ExportSettingsType;
 import net.osmand.plus.settings.backend.OsmAndAppCustomization;
 import net.osmand.plus.settings.backend.OsmandSettings;
 import net.osmand.plus.settings.backend.backup.ProfileSettingsItem;
 import net.osmand.plus.settings.backend.backup.SettingsHelper;
-import net.osmand.plus.settings.backend.ExportSettingsType;
 import net.osmand.plus.settings.backend.backup.SettingsItem;
 import net.osmand.plus.views.OsmandMapLayer;
 import net.osmand.plus.views.OsmandMapTileView;
@@ -126,6 +131,7 @@ import static net.osmand.aidl.ConnectedApp.AIDL_OBJECT_ID;
 import static net.osmand.aidl.ConnectedApp.AIDL_PACKAGE_NAME;
 import static net.osmand.aidl.ConnectedApp.AIDL_REMOVE_MAP_LAYER;
 import static net.osmand.aidl.ConnectedApp.AIDL_REMOVE_MAP_WIDGET;
+import static net.osmand.aidlapi.OsmandAidlConstants.CANNOT_ACCESS_API_ERROR;
 import static net.osmand.aidlapi.OsmandAidlConstants.COPY_FILE_IO_ERROR;
 import static net.osmand.aidlapi.OsmandAidlConstants.COPY_FILE_MAX_LOCK_TIME_MS;
 import static net.osmand.aidlapi.OsmandAidlConstants.COPY_FILE_PARAMS_ERROR;
@@ -135,12 +141,16 @@ import static net.osmand.aidlapi.OsmandAidlConstants.COPY_FILE_UNSUPPORTED_FILE_
 import static net.osmand.aidlapi.OsmandAidlConstants.COPY_FILE_WRITE_LOCK_ERROR;
 import static net.osmand.aidlapi.OsmandAidlConstants.OK_RESPONSE;
 import static net.osmand.plus.FavouritesDbHelper.FILE_TO_SAVE;
+import static net.osmand.plus.helpers.ExternalApiHelper.PARAM_NT_DIRECTION_ANGLE;
 import static net.osmand.plus.helpers.ExternalApiHelper.PARAM_NT_DIRECTION_LANES;
 import static net.osmand.plus.helpers.ExternalApiHelper.PARAM_NT_DIRECTION_NAME;
+import static net.osmand.plus.helpers.ExternalApiHelper.PARAM_NT_DIRECTION_POSSIBLY_LEFT;
+import static net.osmand.plus.helpers.ExternalApiHelper.PARAM_NT_DIRECTION_POSSIBLY_RIGHT;
 import static net.osmand.plus.helpers.ExternalApiHelper.PARAM_NT_DIRECTION_TURN;
 import static net.osmand.plus.helpers.ExternalApiHelper.PARAM_NT_DISTANCE;
 import static net.osmand.plus.helpers.ExternalApiHelper.PARAM_NT_IMMINENT;
 import static net.osmand.plus.settings.backend.backup.SettingsHelper.REPLACE_KEY;
+import static net.osmand.plus.settings.backend.backup.SettingsHelper.SILENT_IMPORT_KEY;
 
 public class OsmandAidlApi {
 
@@ -173,6 +183,7 @@ public class OsmandAidlApi {
 	private static final String AIDL_DATA = "aidl_data";
 	private static final String AIDL_URI = "aidl_uri";
 	private static final String AIDL_FORCE = "aidl_force";
+	private static final String AIDL_LOCATION_PERMISSION = "aidl_location_permission";
 	private static final String AIDL_SEARCH_QUERY = "aidl_search_query";
 	private static final String AIDL_SEARCH_LAT = "aidl_search_lat";
 	private static final String AIDL_SEARCH_LON = "aidl_search_lon";
@@ -204,7 +215,7 @@ public class OsmandAidlApi {
 
 	private static final ApplicationMode DEFAULT_PROFILE = ApplicationMode.CAR;
 
-	private static final ApplicationMode[] VALID_PROFILES = new ApplicationMode[]{
+	private static final ApplicationMode[] VALID_PROFILES = new ApplicationMode[] {
 			ApplicationMode.CAR,
 			ApplicationMode.BICYCLE,
 			ApplicationMode.PEDESTRIAN
@@ -283,7 +294,7 @@ public class OsmandAidlApi {
 	}
 
 	private void initOsmandTelegram() {
-		String[] packages = new String[]{"net.osmand.telegram", "net.osmand.telegram.debug"};
+		String[] packages = new String[] {"net.osmand.telegram", "net.osmand.telegram.debug"};
 		Intent intent = new Intent("net.osmand.telegram.InitApp");
 		for (String pack : packages) {
 			intent.setComponent(new ComponentName(pack, "net.osmand.telegram.InitAppBroadcastReceiver"));
@@ -597,20 +608,20 @@ public class OsmandAidlApi {
 
 					final RoutingHelper routingHelper = app.getRoutingHelper();
 					boolean force = intent.getBooleanExtra(AIDL_FORCE, true);
+					final boolean locationPermission = intent.getBooleanExtra(AIDL_LOCATION_PERMISSION, false);
 					if (routingHelper.isFollowingMode() && !force) {
-						AlertDialog dlg = mapActivity.getMapActions().stopNavigationActionConfirm();
-						dlg.setOnDismissListener(new DialogInterface.OnDismissListener() {
+						mapActivity.getMapActions().stopNavigationActionConfirm(new DialogInterface.OnDismissListener() {
 
 							@Override
 							public void onDismiss(DialogInterface dialog) {
 								MapActivity mapActivity = mapActivityRef.get();
 								if (mapActivity != null && !routingHelper.isFollowingMode()) {
-									ExternalApiHelper.startNavigation(mapActivity, start, startDesc, dest, destDesc, profile);
+									ExternalApiHelper.startNavigation(mapActivity, start, startDesc, dest, destDesc, profile, locationPermission);
 								}
 							}
 						});
 					} else {
-						ExternalApiHelper.startNavigation(mapActivity, start, startDesc, dest, destDesc, profile);
+						ExternalApiHelper.startNavigation(mapActivity, start, startDesc, dest, destDesc, profile, locationPermission);
 					}
 				}
 			}
@@ -664,20 +675,22 @@ public class OsmandAidlApi {
 					if (searchLocation != null) {
 						final RoutingHelper routingHelper = app.getRoutingHelper();
 						boolean force = intent.getBooleanExtra(AIDL_FORCE, true);
+						final boolean locationPermission = intent.getBooleanExtra(AIDL_LOCATION_PERMISSION, false);
 						if (routingHelper.isFollowingMode() && !force) {
-							AlertDialog dlg = mapActivity.getMapActions().stopNavigationActionConfirm();
-							dlg.setOnDismissListener(new DialogInterface.OnDismissListener() {
+							mapActivity.getMapActions().stopNavigationActionConfirm(new DialogInterface.OnDismissListener() {
 
 								@Override
 								public void onDismiss(DialogInterface dialog) {
 									MapActivity mapActivity = mapActivityRef.get();
 									if (mapActivity != null && !routingHelper.isFollowingMode()) {
-										ExternalApiHelper.searchAndNavigate(mapActivity, searchLocation, start, startDesc, profile, searchQuery, false);
+										ExternalApiHelper.searchAndNavigate(mapActivity, searchLocation, start,
+												startDesc, profile, searchQuery, false, locationPermission);
 									}
 								}
 							});
 						} else {
-							ExternalApiHelper.searchAndNavigate(mapActivity, searchLocation, start, startDesc, profile, searchQuery, false);
+							ExternalApiHelper.searchAndNavigate(mapActivity, searchLocation, start,
+									startDesc, profile, searchQuery, false, locationPermission);
 						}
 					}
 				}
@@ -696,7 +709,8 @@ public class OsmandAidlApi {
 					GPXFile gpx = loadGpxFileFromIntent(mapActivity, intent);
 					if (gpx != null) {
 						boolean force = intent.getBooleanExtra(AIDL_FORCE, false);
-						ExternalApiHelper.saveAndNavigateGpx(mapActivity, gpx, force);
+						boolean locationPermission = intent.getBooleanExtra(AIDL_LOCATION_PERMISSION, false);
+						ExternalApiHelper.saveAndNavigateGpx(mapActivity, gpx, force, locationPermission);
 					}
 				}
 			}
@@ -1650,8 +1664,8 @@ public class OsmandAidlApi {
 	}
 
 	boolean navigate(String startName, double startLat, double startLon,
-	                 String destName, double destLat, double destLon,
-	                 String profile, boolean force) {
+					 String destName, double destLat, double destLon,
+					 String profile, boolean force, boolean requestLocationPermission) {
 		Intent intent = new Intent();
 		intent.setAction(AIDL_NAVIGATE);
 		intent.putExtra(AIDL_START_NAME, startName);
@@ -1662,13 +1676,14 @@ public class OsmandAidlApi {
 		intent.putExtra(AIDL_DEST_LON, destLon);
 		intent.putExtra(AIDL_PROFILE, profile);
 		intent.putExtra(AIDL_FORCE, force);
+		intent.putExtra(AIDL_LOCATION_PERMISSION, requestLocationPermission);
 		app.sendBroadcast(intent);
 		return true;
 	}
 
 	boolean navigateSearch(String startName, double startLat, double startLon,
-	                       String searchQuery, double searchLat, double searchLon,
-	                       String profile, boolean force) {
+						   String searchQuery, double searchLat, double searchLon,
+						   String profile, boolean force, boolean requestLocationPermission) {
 		Intent intent = new Intent();
 		intent.setAction(AIDL_NAVIGATE_SEARCH);
 		intent.putExtra(AIDL_START_NAME, startName);
@@ -1679,6 +1694,7 @@ public class OsmandAidlApi {
 		intent.putExtra(AIDL_SEARCH_LON, searchLon);
 		intent.putExtra(AIDL_PROFILE, profile);
 		intent.putExtra(AIDL_FORCE, force);
+		intent.putExtra(AIDL_LOCATION_PERMISSION, requestLocationPermission);
 		app.sendBroadcast(intent);
 		return true;
 	}
@@ -1718,12 +1734,13 @@ public class OsmandAidlApi {
 		return true;
 	}
 
-	boolean navigateGpx(String data, Uri uri, boolean force) {
+	boolean navigateGpx(String data, Uri uri, boolean force, boolean requestLocationPermission) {
 		Intent intent = new Intent();
 		intent.setAction(AIDL_NAVIGATE_GPX);
 		intent.putExtra(AIDL_DATA, data);
 		intent.putExtra(AIDL_URI, uri);
 		intent.putExtra(AIDL_FORCE, force);
+		intent.putExtra(AIDL_LOCATION_PERMISSION, requestLocationPermission);
 		app.sendBroadcast(intent);
 		return true;
 	}
@@ -1787,8 +1804,11 @@ public class OsmandAidlApi {
 		if (ni.directionInfo != null && ni.directionInfo.getTurnType() != null) {
 			TurnType tt = ni.directionInfo.getTurnType();
 			RouteDirectionInfo a = ni.directionInfo;
-			bundle.putString(prefix + PARAM_NT_DIRECTION_NAME, RoutingHelper.formatStreetName(a.getStreetName(), a.getRef(), a.getDestinationName(), ""));
+			bundle.putString(prefix + PARAM_NT_DIRECTION_NAME, RoutingHelperUtils.formatStreetName(a.getStreetName(), a.getRef(), a.getDestinationName(), ""));
 			bundle.putString(prefix + PARAM_NT_DIRECTION_TURN, tt.toXmlString());
+			bundle.putFloat(prefix + PARAM_NT_DIRECTION_ANGLE, tt.getTurnAngle());
+			bundle.putBoolean(prefix + PARAM_NT_DIRECTION_POSSIBLY_LEFT, tt.isPossibleLeftTurn());
+			bundle.putBoolean(prefix + PARAM_NT_DIRECTION_POSSIBLY_RIGHT, tt.isPossibleRightTurn());
 			if (tt.getLanes() != null) {
 				bundle.putString(prefix + PARAM_NT_DIRECTION_LANES, Arrays.toString(tt.getLanes()));
 			}
@@ -1796,7 +1816,7 @@ public class OsmandAidlApi {
 	}
 
 	boolean search(final String searchQuery, final int searchType, final double latitude, final double longitude,
-	               final int radiusLevel, final int totalLimit, final SearchCompleteCallback callback) {
+				   final int radiusLevel, final int totalLimit, final SearchCompleteCallback callback) {
 		if (Algorithms.isEmpty(searchQuery) || latitude == 0 || longitude == 0 || callback == null) {
 			return false;
 		}
@@ -2165,7 +2185,7 @@ public class OsmandAidlApi {
 	}
 
 	boolean getBitmapForGpx(final Uri gpxUri, final float density, final int widthPixels,
-	                        final int heightPixels, final int color, final GpxBitmapCreatedCallback callback) {
+							final int heightPixels, final int color, final GpxBitmapCreatedCallback callback) {
 		if (gpxUri == null || callback == null) {
 			return false;
 		}
@@ -2236,11 +2256,12 @@ public class OsmandAidlApi {
 	}
 
 	public boolean importProfileV2(final Uri profileUri, ArrayList<String> settingsTypeKeys, boolean replace,
-	                               String latestChanges, int version) {
+								   String latestChanges, int version) {
 		if (profileUri != null) {
 			Bundle bundle = new Bundle();
 			bundle.putStringArrayList(SettingsHelper.SETTINGS_TYPE_LIST_KEY, settingsTypeKeys);
 			bundle.putBoolean(REPLACE_KEY, replace);
+			bundle.putBoolean(SILENT_IMPORT_KEY, true);
 			bundle.putString(SettingsHelper.SETTINGS_LATEST_CHANGES_KEY, latestChanges);
 			bundle.putInt(SettingsHelper.SETTINGS_VERSION_KEY, version);
 
@@ -2312,7 +2333,7 @@ public class OsmandAidlApi {
 			File exportDir = app.getSettings().getExternalStorageDirectory();
 			String fileName = appMode.toHumanString();
 			SettingsHelper settingsHelper = app.getSettingsHelper();
-			settingsItems.addAll(settingsHelper.getFilteredSettingsItems(settingsHelper.getAdditionalData(false), settingsTypes));
+			settingsItems.addAll(settingsHelper.getFilteredSettingsItems(settingsTypes, false, true));
 			settingsHelper.exportSettings(exportDir, fileName, null, settingsItems, true);
 			return true;
 		}
@@ -2325,6 +2346,63 @@ public class OsmandAidlApi {
 
 	public boolean isMenuOpen() {
 		return mapActivity.getContextMenu().isVisible();
+	}
+
+	public int getPluginVersion(String pluginName) {
+		OsmandPlugin plugin = OsmandPlugin.getPlugin(pluginName);
+		if (plugin instanceof CustomOsmandPlugin) {
+			CustomOsmandPlugin customPlugin = (CustomOsmandPlugin) plugin;
+			return customPlugin.getVersion();
+		}
+		return CANNOT_ACCESS_API_ERROR;
+	}
+
+	public boolean selectProfile(String appModeKey) {
+		final ApplicationMode appMode = ApplicationMode.valueOfStringKey(appModeKey, null);
+		if (appMode != null) {
+			app.runInUIThread(new Runnable() {
+				@Override
+				public void run() {
+					if (!ApplicationMode.values(app).contains(appMode)) {
+						ApplicationMode.changeProfileAvailability(appMode, true, app);
+					}
+					app.getSettings().setApplicationMode(appMode);
+				}
+			});
+			return true;
+		}
+		return false;
+	}
+
+	public boolean getProfiles(List<AProfile> profiles) {
+		for (ApplicationMode mode : ApplicationMode.allPossibleValues()) {
+			ApplicationModeBean bean = mode.toModeBean();
+			AProfile aProfile = new AProfile(bean.stringKey, bean.userProfileName, bean.parent, bean.iconName,
+					bean.iconColor.name(), bean.routingProfile, bean.routeService.name(), bean.locIcon.name(),
+					bean.navIcon.name(), bean.order);
+
+			profiles.add(aProfile);
+		}
+		return true;
+	}
+
+	public boolean getBlockedRoads(List<ABlockedRoad> blockedRoads) {
+		Map<LatLon, AvoidRoadInfo> impassableRoads = app.getAvoidSpecificRoads().getImpassableRoads();
+		for (AvoidRoadInfo info : impassableRoads.values()) {
+			blockedRoads.add(new ABlockedRoad(info.id, info.latitude, info.longitude, info.direction, info.name, info.appModeKey));
+		}
+		return true;
+	}
+
+	public boolean addRoadBlock(ABlockedRoad road) {
+		LatLon latLon = new LatLon(road.getLatitude(), road.getLongitude());
+		app.getAvoidSpecificRoads().addImpassableRoad(null, latLon, false, false, road.getAppModeKey());
+		return true;
+	}
+
+	public boolean removeRoadBlock(ABlockedRoad road) {
+		app.getAvoidSpecificRoads().removeImpassableRoad(new LatLon(road.getLatitude(), road.getLongitude()));
+		return true;
 	}
 
 	private static class FileCopyInfo {

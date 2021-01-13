@@ -97,7 +97,7 @@ public class OsmandSettings {
 	private static String CUSTOM_SHARED_PREFERENCES_NAME;
 
 	private static final String RENDERER_PREFERENCE_PREFIX = "nrenderer_";
-	private static final String ROUTING_PREFERENCE_PREFIX = "prouting_";
+	public static final String ROUTING_PREFERENCE_PREFIX = "prouting_";
 
 	/// Settings variables
 	private final OsmandApplication ctx;
@@ -238,7 +238,7 @@ public class OsmandSettings {
 					String appModeKey = (String) value;
 					ApplicationMode appMode = ApplicationMode.valueOfStringKey(appModeKey, null);
 					if (appMode != null) {
-						APPLICATION_MODE.set(appMode);
+						setApplicationMode(appMode);
 						return true;
 					}
 				}
@@ -379,6 +379,18 @@ public class OsmandSettings {
 	}
 
 	public ApplicationMode LAST_ROUTING_APPLICATION_MODE = null;
+
+	public boolean setApplicationMode(ApplicationMode appMode) {
+		return setApplicationMode(appMode, true);
+	}
+
+	public boolean setApplicationMode(ApplicationMode appMode, boolean markAsLastUsed) {
+		boolean valueSaved = APPLICATION_MODE.set(appMode);
+		if (markAsLastUsed && valueSaved) {
+			LAST_USED_APPLICATION_MODE.set(appMode.getStringKey());
+		}
+		return valueSaved;
+	}
 
 	// this value string is synchronized with settings_pref.xml preference name
 	public final OsmandPreference<ApplicationMode> APPLICATION_MODE = new PreferenceWithListener<ApplicationMode>() {
@@ -735,11 +747,20 @@ public class OsmandSettings {
 
 	public final OsmandPreference<String> LAST_FAV_CATEGORY_ENTERED = new StringPreference(this, "last_fav_category", "").makeGlobal();
 
+	public final OsmandPreference<Boolean> USE_LAST_APPLICATION_MODE_BY_DEFAULT = new BooleanPreference(this, "use_last_application_mode_by_default", false).makeGlobal().makeShared();
+
+	public final OsmandPreference<String> LAST_USED_APPLICATION_MODE = new StringPreference(this, "last_used_application_mode", ApplicationMode.DEFAULT.getStringKey()).makeGlobal().makeShared();
+
 	public final OsmandPreference<ApplicationMode> DEFAULT_APPLICATION_MODE = new CommonPreference<ApplicationMode>(this, "default_application_mode_string", ApplicationMode.DEFAULT) {
 
 		@Override
 		protected ApplicationMode getValue(Object prefs, ApplicationMode defaultValue) {
-			String key = settingsAPI.getString(prefs, getId(), defaultValue.getStringKey());
+			String key;
+			if (USE_LAST_APPLICATION_MODE_BY_DEFAULT.get()) {
+				key = LAST_USED_APPLICATION_MODE.get();
+			} else {
+				key = settingsAPI.getString(prefs, getId(), defaultValue.getStringKey());
+			}
 			return ApplicationMode.valueOfStringKey(key, defaultValue);
 		}
 
@@ -747,7 +768,7 @@ public class OsmandSettings {
 		protected boolean setValue(Object prefs, ApplicationMode val) {
 			boolean valueSaved = settingsAPI.edit(prefs).putString(getId(), val.getStringKey()).commit();
 			if (valueSaved) {
-				APPLICATION_MODE.set(val);
+				setApplicationMode(val);
 			}
 
 			return valueSaved;
@@ -955,6 +976,8 @@ public class OsmandSettings {
 		ICON_RES_NAME.setModeDefaultValue(ApplicationMode.BOAT, "ic_action_sail_boat_dark");
 		ICON_RES_NAME.setModeDefaultValue(ApplicationMode.AIRCRAFT, "ic_action_aircraft");
 		ICON_RES_NAME.setModeDefaultValue(ApplicationMode.SKI, "ic_action_skiing");
+		ICON_RES_NAME.setModeDefaultValue(ApplicationMode.TRUCK, "ic_action_truck_dark");
+		ICON_RES_NAME.setModeDefaultValue(ApplicationMode.MOTORCYCLE, "ic_action_motorcycle_dark");
 	}
 
 	public final CommonPreference<ProfileIconColors> ICON_COLOR = new EnumStringPreference<>(this,
@@ -976,12 +999,23 @@ public class OsmandSettings {
 		ROUTING_PROFILE.setModeDefaultValue(ApplicationMode.SKI, "ski");
 	}
 
-	public final CommonPreference<RouteService> ROUTE_SERVICE = new EnumStringPreference<>(this, "route_service", RouteService.OSMAND, RouteService.values()).makeProfile().cache();
+	public final CommonPreference<RouteService> ROUTE_SERVICE = new EnumStringPreference<RouteService>(this, "route_service", RouteService.OSMAND, RouteService.values()) {
+		@Override
+		public RouteService getModeValue(ApplicationMode mode) {
+			if (mode == ApplicationMode.DEFAULT) {
+				return RouteService.STRAIGHT;
+			} else {
+				return super.getModeValue(mode);
+			}
+		}
+	}.makeProfile().cache();
 
 	{
 		ROUTE_SERVICE.setModeDefaultValue(ApplicationMode.DEFAULT, RouteService.STRAIGHT);
 		ROUTE_SERVICE.setModeDefaultValue(ApplicationMode.AIRCRAFT, RouteService.STRAIGHT);
 	}
+
+	public final CommonPreference<String> ONLINE_ROUTING_ENGINES = new StringPreference(this, "online_routing_engines", null).makeGlobal();
 
 	public final CommonPreference<NavigationIcon> NAVIGATION_ICON = new EnumStringPreference<>(this, "navigation_icon", NavigationIcon.DEFAULT, NavigationIcon.values()).makeProfile().cache();
 
@@ -1131,8 +1165,25 @@ public class OsmandSettings {
 	public final OsmandPreference<String> USER_ACCESS_TOKEN_SECRET =
 			new StringPreference(this, "user_access_token_secret", "").makeGlobal();
 
+	public final OsmandPreference<String> OPR_ACCESS_TOKEN =
+			new StringPreference(this, "opr_user_access_token_secret", "").makeGlobal();
+
+	public final OsmandPreference<String> OPR_USERNAME =
+			new StringPreference(this, "opr_username_secret", "").makeGlobal();
+
 	// this value boolean is synchronized with settings_pref.xml preference offline POI/Bugs edition
 	public final OsmandPreference<Boolean> OFFLINE_EDITION = new BooleanPreference(this, "offline_osm_editing", true).makeGlobal().makeShared();
+	public final OsmandPreference<Boolean> USE_DEV_URL = new BooleanPreference(this, "use_dev_url", false).makeGlobal().makeShared();
+
+	public String getOsmUrl() {
+		String osmUrl;
+		if (USE_DEV_URL.get()) {
+			osmUrl = "https://master.apis.dev.openstreetmap.org/";
+		} else {
+			osmUrl = "https://api.openstreetmap.org/";
+		}
+		return osmUrl;
+	}
 
 	// this value string is synchronized with settings_pref.xml preference name
 	public final CommonPreference<DayNightMode> DAYNIGHT_MODE =
@@ -2084,6 +2135,7 @@ public class OsmandSettings {
 	public static final String IMPASSABLE_ROAD_POINTS = "impassable_road_points";
 	public static final String IMPASSABLE_ROADS_DESCRIPTIONS = "impassable_roads_descriptions";
 	public static final String IMPASSABLE_ROADS_IDS = "impassable_roads_ids";
+	public static final String IMPASSABLE_ROADS_DIRECTIONS = "impassable_roads_directions";
 	public static final String IMPASSABLE_ROADS_APP_MODE_KEYS = "impassable_roads_app_mode_keys";
 
 	public void backupPointToStart() {
@@ -2507,7 +2559,7 @@ public class OsmandSettings {
 			new ListStringPreference(this, "inactive_poi_filters", null, ",,").makeProfile().cache();
 
 	public final ContextMenuItemsPreference DRAWER_ITEMS =
-			(ContextMenuItemsPreference) new ContextMenuItemsPreference(this, "drawer_items", DRAWER_ITEM_ID_SCHEME, new ContextMenuItemsSettings())
+			(ContextMenuItemsPreference) new ContextMenuItemsPreference(this, "drawer_items", DRAWER_ITEM_ID_SCHEME, ContextMenuItemsSettings.getDrawerDefaultInstance())
 					.makeProfile().cache();
 
 	public final ContextMenuItemsPreference CONFIGURE_MAP_ITEMS =

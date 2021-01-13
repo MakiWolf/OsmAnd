@@ -16,7 +16,6 @@ import net.osmand.plus.UiUtilities;
 import net.osmand.plus.helpers.FontCache;
 import net.osmand.plus.settings.backend.ExportSettingsType;
 
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -33,7 +32,7 @@ public class ImportedSettingsItemsAdapter extends
 	private OnItemClickListener listener;
 
 	ImportedSettingsItemsAdapter(@NonNull OsmandApplication app, Map<ExportSettingsType, List<?>> itemsMap,
-	                             boolean nightMode, OnItemClickListener listener) {
+								 boolean nightMode, OnItemClickListener listener) {
 		this.app = app;
 		this.itemsMap = itemsMap;
 		this.nightMode = nightMode;
@@ -87,7 +86,7 @@ public class ImportedSettingsItemsAdapter extends
 				holder.title.setText(R.string.configure_screen_quick_action);
 				break;
 			case POI_TYPES:
-				holder.icon.setImageDrawable(uiUtils.getIcon(R.drawable.ic_action_search_dark, activeColorRes));
+				holder.icon.setImageDrawable(uiUtils.getIcon(R.drawable.ic_action_info_dark, activeColorRes));
 				holder.title.setText(R.string.search_activity);
 				break;
 			case MAP_SOURCES:
@@ -108,7 +107,7 @@ public class ImportedSettingsItemsAdapter extends
 				break;
 			case MULTIMEDIA_NOTES:
 				holder.icon.setImageDrawable(uiUtils.getIcon(R.drawable.ic_action_photo_dark, activeColorRes));
-				holder.title.setText(R.string.audionotes_plugin_name);
+				holder.title.setText(R.string.notes);
 				break;
 			case TRACKS:
 				holder.icon.setImageDrawable(uiUtils.getIcon(R.drawable.ic_action_route_distance, activeColorRes));
@@ -119,7 +118,7 @@ public class ImportedSettingsItemsAdapter extends
 				holder.title.setText(R.string.osm_notes);
 				break;
 			case OSM_EDITS:
-				holder.icon.setImageDrawable(uiUtils.getIcon(R.drawable.ic_action_info_dark, activeColorRes));
+				holder.icon.setImageDrawable(uiUtils.getIcon(R.drawable.ic_action_openstreetmap_logo, activeColorRes));
 				holder.title.setText(R.string.osm_edits);
 				break;
 			case FAVORITES:
@@ -141,6 +140,22 @@ public class ImportedSettingsItemsAdapter extends
 			case GLOBAL:
 				holder.icon.setImageDrawable(uiUtils.getIcon(R.drawable.ic_action_settings, activeColorRes));
 				holder.title.setText(R.string.general_settings_2);
+				break;
+			case ACTIVE_MARKERS:
+				holder.icon.setImageDrawable(uiUtils.getIcon(R.drawable.ic_action_flag, activeColorRes));
+				holder.title.setText(R.string.map_markers);
+				break;
+			case HISTORY_MARKERS:
+				holder.icon.setImageDrawable(uiUtils.getIcon(R.drawable.ic_action_flag, activeColorRes));
+				holder.title.setText(R.string.markers_history);
+				break;
+			case SEARCH_HISTORY:
+				holder.icon.setImageDrawable(uiUtils.getIcon(R.drawable.ic_action_history, activeColorRes));
+				holder.title.setText(R.string.shared_string_search_history);
+				break;
+			case ONLINE_ROUTING_ENGINES:
+				holder.icon.setImageDrawable(uiUtils.getIcon(R.drawable.ic_world_globe_dark, activeColorRes));
+				holder.title.setText(R.string.online_routing_engines);
 				break;
 		}
 	}

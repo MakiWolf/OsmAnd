@@ -39,7 +39,7 @@ import net.osmand.data.LatLon;
 import net.osmand.data.QuadPoint;
 import net.osmand.plus.TargetPointsHelper.TargetPoint;
 import net.osmand.plus.routing.RoutingHelper;
-import net.osmand.plus.routing.RoutingHelper.RouteSegmentSearchResult;
+import net.osmand.plus.routing.RouteSegmentSearchResult;
 import net.osmand.plus.settings.backend.ApplicationMode;
 import net.osmand.plus.settings.backend.OsmandSettings;
 import net.osmand.router.RouteSegmentResult;
@@ -154,7 +154,7 @@ public class OsmAndLocationProvider implements SensorEventListener {
 				startLocation.setTime(ms);
 			}
 			RouteSegmentSearchResult searchResult =
-					RoutingHelper.searchRouteSegment(currentLocation.getLatitude(), currentLocation.getLongitude(), -1, roads);
+					RouteSegmentSearchResult.searchRouteSegment(currentLocation.getLatitude(), currentLocation.getLongitude(), -1, roads);
 			if (searchResult != null) {
 				currentRoad = searchResult.getRoadIndex();
 				currentSegment = searchResult.getSegmentIndex();
@@ -673,15 +673,15 @@ public class OsmAndLocationProvider implements SensorEventListener {
 
 	private void stopLocationRequests() {
 		LocationManager service = (LocationManager) app.getSystemService(Context.LOCATION_SERVICE);
-		if(gpsStatusListener != null) {
-			if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+		if (gpsStatusListener != null) {
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
 				service.unregisterGnssStatusCallback((GnssStatus.Callback) gpsStatusListener);
 			} else {
 				service.removeGpsStatusListener((Listener) gpsStatusListener);
 			}
 		}
 		service.removeUpdates(gpsListener);
-		while(!networkListeners.isEmpty()) {
+		while (!networkListeners.isEmpty()) {
 			service.removeUpdates(networkListeners.poll());
 		}
 	}
@@ -791,19 +791,17 @@ public class OsmAndLocationProvider implements SensorEventListener {
 			}
 		}
 	}
-	
-	
-	public void setLocationFromService(net.osmand.Location location, boolean continuous) {
+
+	public void setLocationFromService(net.osmand.Location location) {
 		if (locationSimulation.isRouteAnimating()) {
 			return;
 		}
 		if (location != null) {
 			notifyGpsLocationRecovered();
 		}
-		// if continuous notify about lost location
-		if (continuous) {
-			scheduleCheckIfGpsLost(location);
-		}
+		// notify about lost location
+		scheduleCheckIfGpsLost(location);
+
 		app.getSavingTrackHelper().updateLocation(location, heading);
 		OsmandPlugin.updateLocationPlugins(location);
 		app.getRoutingHelper().updateLocation(location);
@@ -814,8 +812,7 @@ public class OsmAndLocationProvider implements SensorEventListener {
 		setLocation(location);
 	}
 
-	private void setLocation(net.osmand.Location location) {
-		if (location == null) {
+	private void setLocation(net.osmand.Location location) { if (location == null) {
 			updateGPSInfo(null);
 		}
 

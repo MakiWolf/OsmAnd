@@ -113,7 +113,7 @@ public class RoutingOptionsHelper {
 	public void selectRestrictedRoads(final MapActivity mapActivity) {
 		mapActivity.getDashboard().setDashboardVisibility(false, DashboardOnMap.DashboardType.ROUTE_PREFERENCES);
 		mapActivity.getMapRouteInfoMenu().hide();
-		mapActivity.getMyApplication().getAvoidSpecificRoads().showDialog(mapActivity);
+		mapActivity.getMyApplication().getAvoidSpecificRoads().showDialog(mapActivity, null);
 	}
 
 	public void selectVoiceGuidance(final MapActivity mapActivity, final CallbackWithObject<String> callback, ApplicationMode applicationMode) {
@@ -230,7 +230,7 @@ public class RoutingOptionsHelper {
 		if (rp instanceof OtherLocalRoutingParameter) {
 			updateGpxRoutingParameter((OtherLocalRoutingParameter) rp);
 		}
-		routingHelper.recalculateRouteDueToSettingsChange();
+		routingHelper.onSettingsChanged(rp.getApplicationMode(), true);
 	}
 
 	public void updateGpxRoutingParameter(OtherLocalRoutingParameter gpxParam) {
@@ -377,7 +377,7 @@ public class RoutingOptionsHelper {
 								LocalRoutingParameter rp = group.getRoutingParameters().get(i);
 								rp.setSelected(settings, i == position);
 							}
-							mapActivity.getRoutingHelper().recalculateRouteDueToSettingsChange();
+							mapActivity.getRoutingHelper().onSettingsChanged(true);
 							if (listener != null) {
 								listener.onClick();
 							}
@@ -542,8 +542,8 @@ public class RoutingOptionsHelper {
 				rp.disabledIconId = R.drawable.ic_action_fuel;
 				break;
 			case GeneralRouter.USE_HEIGHT_OBSTACLES:
-				rp.activeIconId = R.drawable.ic_action_elevation;
-				rp.disabledIconId = R.drawable.ic_action_elevation;
+				rp.activeIconId = R.drawable.ic_action_altitude_average;
+				rp.disabledIconId = R.drawable.ic_action_altitude_average;
 				break;
 			case GeneralRouter.AVOID_FERRIES:
 				rp.activeIconId = R.drawable.ic_action_fuel;

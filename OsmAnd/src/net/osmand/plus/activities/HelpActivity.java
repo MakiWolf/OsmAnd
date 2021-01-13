@@ -168,15 +168,13 @@ public class HelpActivity extends OsmandActionBarActivity implements AdapterView
 		contextMenuAdapter.addItem(createCategory(R.string.other_menu_group));
 		contextMenuAdapter.addItem(createItem(R.string.instalation_troubleshooting_item, NULL_ID,
 				"feature_articles/installation-and-troubleshooting.html"));
-		contextMenuAdapter.addItem(createItem(R.string.techical_articles_item, NULL_ID,
-				"feature_articles/technical-articles.html"));
 		contextMenuAdapter.addItem(createItem(R.string.versions_item, NULL_ID,
 				"feature_articles/changes.html"));
 		contextMenuAdapter.addItem(createItem(R.string.what_is_new, NULL_ID,
-				"feature_articles/osmand-3-8-released.html"));
+				"feature_articles/osmand-3-9-released.html"));
 
 		String releasedate = "";
-		if (!this.getString(R.string.app_edition).equals("")) {
+		if (!this.getString(R.string.app_edition).isEmpty()) {
 			releasedate = ", " + this.getString(R.string.shared_string_release).toLowerCase() + ": " + this.getString(R.string.app_edition);
 		}
 		String version = Version.getFullVersion(getMyApplication()) + releasedate;

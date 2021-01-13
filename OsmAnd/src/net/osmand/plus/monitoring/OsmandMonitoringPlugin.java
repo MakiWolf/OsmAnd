@@ -73,7 +73,7 @@ public class OsmandMonitoringPlugin extends OsmandPlugin {
 		super(app);
 		liveMonitoringHelper = new LiveMonitoringHelper(app);
 		final List<ApplicationMode> am = ApplicationMode.allPossibleValues();
-		ApplicationMode.regWidgetVisibility("monitoring", am.toArray(new ApplicationMode[am.size()]));
+		ApplicationMode.regWidgetVisibility("monitoring", am.toArray(new ApplicationMode[0]));
 		settings = app.getSettings();
 		pluginPreferences.add(settings.SAVE_TRACK_TO_GPX);
 		pluginPreferences.add(settings.SAVE_TRACK_INTERVAL);
@@ -117,7 +117,7 @@ public class OsmandMonitoringPlugin extends OsmandPlugin {
 	}
 
 	@Override
-	public String getDescription() {
+	public CharSequence getDescription() {
 		return app.getString(R.string.record_plugin_description);
 	}
 
@@ -461,7 +461,7 @@ public class OsmandMonitoringPlugin extends OsmandPlugin {
 				if (activityRef != null && !Algorithms.isEmpty(result.getFilenames())) {
 					final Activity a = activityRef.get();
 					if (a instanceof FragmentActivity && !a.isFinishing()) {
-						OnSaveCurrentTrackFragment.showInstance(((FragmentActivity) a).getSupportFragmentManager(), result.getFilenames());
+						SaveGPXBottomSheetFragment.showInstance(((FragmentActivity) a).getSupportFragmentManager(), result.getFilenames());
 					}
 				}
 				
@@ -500,8 +500,7 @@ public class OsmandMonitoringPlugin extends OsmandPlugin {
 				settings.SAVE_GLOBAL_TRACK_INTERVAL.set(vs.value);
 				settings.SAVE_GLOBAL_TRACK_TO_GPX.set(true);
 				settings.SAVE_GLOBAL_TRACK_REMEMBER.set(choice.value);
-				int interval = settings.SAVE_GLOBAL_TRACK_INTERVAL.get();
-				app.startNavigationService(NavigationService.USED_BY_GPX, app.navigationServiceGpsInterval(interval));
+				app.startNavigationService(NavigationService.USED_BY_GPX);
 			}
 		};
 		if (choice.value || map == null) {

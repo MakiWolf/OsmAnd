@@ -319,6 +319,20 @@ public class AndroidUtils {
 		);
 	}
 
+	public static ColorStateList createColorStateList(Context ctx, boolean night) {
+		return new ColorStateList(
+				new int[][] {
+						new int[] {-android.R.attr.state_enabled}, // disabled
+						new int[] {android.R.attr.state_checked},
+						new int[] {}
+				},
+				new int[] {
+						ContextCompat.getColor(ctx, night? R.color.text_color_secondary_dark : R.color.text_color_secondary_light),
+						ContextCompat.getColor(ctx, night? R.color.active_color_primary_dark : R.color.active_color_primary_light),
+						ContextCompat.getColor(ctx, night? R.color.text_color_secondary_dark : R.color.text_color_secondary_light)}
+		);
+	}
+
 	public static StateListDrawable createCheckedStateListDrawable(Drawable normal, Drawable checked) {
 		return createStateListDrawable(normal, checked, android.R.attr.state_checked);
 	}
@@ -786,6 +800,14 @@ public class AndroidUtils {
 			result.add(child);
 		}
 		return result;
+	}
+
+	public static long getAvailableSpace(@Nullable File dir) {
+		if (dir != null && dir.canRead()) {
+			StatFs fs = new StatFs(dir.getAbsolutePath());
+			return fs.getAvailableBlocksLong() * fs.getBlockSize();
+		}
+		return -1;
 	}
 
 	public static float getFreeSpaceGb(File dir) {

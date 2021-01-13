@@ -23,7 +23,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AbsListView;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -43,6 +42,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.view.ActionMode;
 import androidx.appcompat.widget.SearchView;
 import androidx.core.content.ContextCompat;
+import androidx.fragment.app.FragmentActivity;
 
 import net.osmand.AndroidUtils;
 import net.osmand.Collator;
@@ -71,7 +71,6 @@ import net.osmand.plus.OsmAndFormatter;
 import net.osmand.plus.OsmandApplication;
 import net.osmand.plus.OsmandPlugin;
 import net.osmand.plus.R;
-import net.osmand.plus.SimplePopUpMenuItemAdapter.SimplePopUpMenuItem;
 import net.osmand.plus.UiUtilities;
 import net.osmand.plus.activities.MapActivity;
 import net.osmand.plus.activities.OsmandBaseExpandableListAdapter;
@@ -80,11 +79,15 @@ import net.osmand.plus.activities.TrackActivity;
 import net.osmand.plus.base.OsmandExpandableListFragment;
 import net.osmand.plus.helpers.AndroidUiHelper;
 import net.osmand.plus.helpers.GpxUiHelper.GPXDataSetType;
+import net.osmand.plus.helpers.enums.TracksSortByMode;
 import net.osmand.plus.mapmarkers.CoordinateInputDialogFragment;
 import net.osmand.plus.monitoring.OsmandMonitoringPlugin;
+import net.osmand.plus.myplaces.MoveGpxFileBottomSheet.OnTrackFileMoveListener;
 import net.osmand.plus.osmedit.OsmEditingPlugin;
+import net.osmand.plus.osmedit.oauth.OsmOAuthHelper.OsmAuthorizationListener;
 import net.osmand.plus.settings.backend.OsmandSettings;
-import net.osmand.plus.helpers.enums.TracksSortByMode;
+import net.osmand.plus.widgets.popup.PopUpMenuHelper;
+import net.osmand.plus.widgets.popup.PopUpMenuItem;
 
 import java.io.File;
 import java.text.DateFormat;
@@ -104,6 +107,7 @@ import java.util.regex.Pattern;
 
 import static net.osmand.plus.GpxSelectionHelper.CURRENT_TRACK;
 import static net.osmand.plus.myplaces.FavoritesActivity.GPX_TAB;
+import static net.osmand.plus.myplaces.FavoritesActivity.OPEN_GPX_REQUEST;
 import static net.osmand.plus.myplaces.FavoritesActivity.TAB_ID;
 import static net.osmand.util.Algorithms.capitalizeFirstLetter;
 import static net.osmand.util.Algorithms.collectDirs;
@@ -112,9 +116,8 @@ import static net.osmand.util.Algorithms.objectEquals;
 import static net.osmand.util.Algorithms.removeAllFiles;
 
 public class AvailableGPXFragment extends OsmandExpandableListFragment implements
-	FavoritesFragmentStateHolder {
+		FavoritesFragmentStateHolder, OsmAuthorizationListener, OnTrackFileMoveListener, RenameCallback {
 
-	public static final Pattern ILLEGAL_PATH_NAME_CHARACTERS = Pattern.compile("[?:\"*|<>]");
 	public static final int SEARCH_ID = -1;
 	// public static final int ACTION_ID = 0;
 	// protected static final int DELETE_ACTION_ID = 1;
@@ -425,12 +428,16 @@ public class AvailableGPXFragment extends OsmandExpandableListFragment implement
 			newIntent.putExtra(TrackActivity.TRACK_FILE_NAME, f.getAbsolutePath());
 		}
 		newIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-		a.startActivity(newIntent);
+		a.startActivityForResult(newIntent, OPEN_GPX_REQUEST);
 	}
 
 	public void reloadTracks() {
 		asyncLoader = new LoadGpxTask();
 		asyncLoader.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, getActivity());
+	}
+
+	public void resetTracksLoader() {
+		asyncLoader = null;
 	}
 
 	@Override
@@ -553,7 +560,7 @@ public class AvailableGPXFragment extends OsmandExpandableListFragment implement
 	public void doAction(int actionResId) {
 		if (actionResId == R.string.shared_string_delete) {
 			operationTask = new DeleteGpxTask();
-			operationTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, selectedItems.toArray(new GpxInfo[selectedItems.size()]));
+			operationTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, selectedItems.toArray(new GpxInfo[0]));
 		} else {
 			operationTask = null;
 		}
@@ -575,13 +582,14 @@ public class AvailableGPXFragment extends OsmandExpandableListFragment implement
 		if (itemId == R.id.action_sort) {
 			Activity activity = getActivity();
 			if (activity != null) {
+				boolean nightMode = app.getSettings().isLightContent();
 				View menuSortItemView = getActivity().findViewById(R.id.action_sort);
-				final List<SimplePopUpMenuItem> items = new ArrayList<>();
+				final List<PopUpMenuItem> items = new ArrayList<>();
 				for (final TracksSortByMode mode : TracksSortByMode.values()) {
-					items.add(new SimplePopUpMenuItem(
-							getString(mode.getNameId()),
-							app.getUIUtilities().getThemedIcon(mode.getIconId()),
-							new View.OnClickListener() {
+					items.add(new PopUpMenuItem.Builder(app)
+							.setTitleId(mode.getNameId())
+							.setIcon(app.getUIUtilities().getThemedIcon(mode.getIconId()))
+							.setOnClickListener(new View.OnClickListener() {
 								@Override
 								public void onClick(View v) {
 									updateTracksSort(mode);
@@ -589,10 +597,12 @@ public class AvailableGPXFragment extends OsmandExpandableListFragment implement
 											: R.color.active_buttons_and_links_text_dark;
 									item.setIcon(getIcon(mode.getIconId(), iconColorId));
 								}
-							}, sortByMode == mode
-					));
+							})
+							.setSelected(sortByMode == mode)
+							.create()
+					);
 				}
-				UiUtilities.showPopUpMenu(menuSortItemView, items);
+				new PopUpMenuHelper.Builder(menuSortItemView, items, nightMode).show();
 			}
 		}
 		return super.onOptionsItemSelected(item);
@@ -786,129 +796,10 @@ public class AvailableGPXFragment extends OsmandExpandableListFragment implement
 	}
 
 	private void moveGpx(final GpxInfo info) {
-
-		final ContextMenuAdapter menuAdapter = new ContextMenuAdapter(app);
-		ContextMenuItem.ItemBuilder itemBuilder = new ContextMenuItem.ItemBuilder();
-
-		final List<File> dirs = new ArrayList<>();
-		collectDirs(app.getAppPath(IndexConstants.GPX_INDEX_DIR), dirs, info.file.getParentFile());
-		if (!info.file.getParentFile().equals(app.getAppPath(IndexConstants.GPX_INDEX_DIR))) {
-			dirs.add(0, app.getAppPath(IndexConstants.GPX_INDEX_DIR));
+		FragmentActivity activity = getActivity();
+		if (activity != null) {
+			MoveGpxFileBottomSheet.showInstance(activity.getSupportFragmentManager(), this, info.file.getAbsolutePath(), false);
 		}
-		String gpxDir = app.getAppPath(IndexConstants.GPX_INDEX_DIR).getPath();
-		int i = 0;
-		for (File dir : dirs) {
-			String dirName = dir.getPath();
-			if (dirName.startsWith(gpxDir)) {
-				if (dirName.length() == gpxDir.length()) {
-					dirName = dir.getName();
-				} else {
-					dirName = dirName.substring(gpxDir.length() + 1);
-				}
-			}
-			menuAdapter.addItem(itemBuilder.setTitle(capitalizeFirstLetter(dirName))
-					.setIcon(R.drawable.ic_action_folder_stroke).setTag(i).createItem());
-			i++;
-		}
-		menuAdapter.addItem(itemBuilder.setTitleId(R.string.add_new_folder, app)
-				.setIcon(R.drawable.ic_zoom_in).setTag(-1).createItem());
-		final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-		final ArrayAdapter<ContextMenuItem> listAdapter =
-				menuAdapter.createListAdapter(getActivity(), app.getSettings().isLightContent());
-		builder.setTitle(R.string.select_gpx_folder);
-		builder.setAdapter(listAdapter, new DialogInterface.OnClickListener() {
-
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				ContextMenuItem item = menuAdapter.getItem(which);
-				int index = item.getTag();
-				if (index == -1) {
-					Activity a = getActivity();
-					AlertDialog.Builder b = new AlertDialog.Builder(a);
-					b.setTitle(R.string.add_new_folder);
-					final EditText editText = new EditText(a);
-					editText.addTextChangedListener(new TextWatcher() {
-						@Override
-						public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-						}
-
-						@Override
-						public void onTextChanged(CharSequence s, int start, int before, int count) {
-						}
-
-						@Override
-						public void afterTextChanged(Editable s) {
-							Editable text = editText.getText();
-							if (text.length() >= 1) {
-								if (ILLEGAL_PATH_NAME_CHARACTERS.matcher(text).find()) {
-									editText.setError(app.getString(R.string.file_name_containes_illegal_char));
-								}
-							}
-						}
-					});
-					int leftPadding = AndroidUtils.dpToPx(a, 24f);
-					int topPadding = AndroidUtils.dpToPx(a, 4f);
-					b.setView(editText, leftPadding, topPadding, leftPadding, topPadding);
-					// Behaviour will be overwritten later;
-					b.setPositiveButton(R.string.shared_string_ok, null);
-					b.setNegativeButton(R.string.shared_string_cancel, null);
-					final AlertDialog alertDialog = b.create();
-					alertDialog.setOnShowListener(new DialogInterface.OnShowListener() {
-						@Override
-						public void onShow(DialogInterface dialog) {
-							alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(
-									new View.OnClickListener() {
-										@Override
-										public void onClick(View v) {
-											String newName = editText.getText().toString();
-											if (ILLEGAL_PATH_NAME_CHARACTERS.matcher(newName).find()) {
-												Toast.makeText(app, R.string.file_name_containes_illegal_char,
-														Toast.LENGTH_LONG).show();
-												return;
-											}
-											File destFolder = new File(app.getAppPath(IndexConstants.GPX_INDEX_DIR), newName);
-											if (destFolder.exists()) {
-												Toast.makeText(app, R.string.file_with_name_already_exists,
-														Toast.LENGTH_LONG).show();
-												return;
-											} else if (destFolder.mkdirs()) {
-												File dest = new File(destFolder, info.fileName);
-												if (info.file.renameTo(dest)) {
-													app.getGpxDbHelper().rename(info.file, dest);
-													asyncLoader = new LoadGpxTask();
-													asyncLoader.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, getActivity());
-												} else {
-													Toast.makeText(app, R.string.file_can_not_be_moved, Toast.LENGTH_LONG).show();
-												}
-
-											} else {
-												Toast.makeText(app, R.string.file_can_not_be_moved, Toast.LENGTH_LONG).show();
-											}
-											alertDialog.dismiss();
-										}
-									});
-						}
-					});
-					alertDialog.show();
-				} else {
-					File dir = dirs.get(index);
-					File dest = new File(dir, info.file.getName());
-					if (dest.exists()) {
-						Toast.makeText(app, R.string.file_with_name_already_exists, Toast.LENGTH_LONG).show();
-					} else {
-						if (info.file.renameTo(dest)) {
-							app.getGpxDbHelper().rename(info.file, dest);
-							asyncLoader = new LoadGpxTask();
-							asyncLoader.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, getActivity());
-						} else {
-							Toast.makeText(app, R.string.file_can_not_be_moved, Toast.LENGTH_LONG).show();
-						}
-					}
-				}
-			}
-		});
-		builder.setNegativeButton(R.string.shared_string_cancel, null);
-		builder.create().show();
 	}
 
 	@Override
@@ -920,6 +811,38 @@ public class AvailableGPXFragment extends OsmandExpandableListFragment implement
 
 	@Override
 	public void restoreState(Bundle bundle) {
+	}
+
+	@Override
+	public void authorizationCompleted() {
+		Bundle bundle = new Bundle();
+		bundle.putInt(TAB_ID, GPX_TAB);
+
+		Intent intent = new Intent(app, app.getAppCustomization().getFavoritesActivity());
+		intent.putExtra(MapActivity.INTENT_PARAMS, bundle);
+		intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT | Intent.FLAG_ACTIVITY_NEW_TASK);
+
+		app.startActivity(intent);
+	}
+
+	@Override
+	public void onFileMove(@NonNull File src, @NonNull File dest) {
+		File destFolder = dest.getParentFile();
+		if (destFolder != null && !destFolder.exists() && !destFolder.mkdirs()) {
+			app.showToastMessage(R.string.file_can_not_be_moved);
+		} else if (dest.exists()) {
+			app.showToastMessage(R.string.file_with_name_already_exists);
+		} else if (src.renameTo(dest)) {
+			app.getGpxDbHelper().rename(src, dest);
+			asyncLoader = new LoadGpxTask();
+			asyncLoader.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, getActivity());
+		} else {
+			app.showToastMessage(R.string.file_can_not_be_moved);
+		}
+  }
+      
+	public void renamedTo(File file) {
+		reloadTracks();
 	}
 
 	public class LoadGpxTask extends AsyncTask<Activity, GpxInfo, List<GpxInfo>> {
@@ -996,7 +919,7 @@ public class AvailableGPXFragment extends OsmandExpandableListFragment implement
 				List<GpxInfo> progress = new ArrayList<>();
 				loadGPXFolder(mapPath, result, loadTask, progress, "");
 				if (!progress.isEmpty()) {
-					loadTask.loadFile(progress.toArray(new GpxInfo[progress.size()]));
+					loadTask.loadFile(progress.toArray(new GpxInfo[0]));
 				}
 			}
 		}
@@ -1016,7 +939,7 @@ public class AvailableGPXFragment extends OsmandExpandableListFragment implement
 					result.add(info);
 					progress.add(info);
 					if (progress.size() > 7) {
-						loadTask.loadFile(progress.toArray(new GpxInfo[progress.size()]));
+						loadTask.loadFile(progress.toArray(new GpxInfo[0]));
 						progress.clear();
 					}
 				}
@@ -1462,7 +1385,7 @@ public class AvailableGPXFragment extends OsmandExpandableListFragment implement
 					list.add(GPXDataSetType.SLOPE);
 				}
 				if (list.size() > 0) {
-					gpxItem.chartTypes = list.toArray(new GPXDataSetType[list.size()]);
+					gpxItem.chartTypes = list.toArray(new GPXDataSetType[0]);
 				}
 				final OsmandSettings settings = app.getSettings();
 				settings.setMapLocationToShow(gpxItem.locationStart.lat, gpxItem.locationStart.lon,
@@ -1476,69 +1399,71 @@ public class AvailableGPXFragment extends OsmandExpandableListFragment implement
 	}
 
 	private void openPopUpMenu(View v, final GpxInfo gpxInfo) {
-		final List<SimplePopUpMenuItem> items = new ArrayList<>();
+		boolean nightMode = app.getSettings().isLightContent();
+		final List<PopUpMenuItem> items = new ArrayList<>();
 		UiUtilities iconsCache = getMyApplication().getUIUtilities();
 
-		items.add(new SimplePopUpMenuItem(
-				getString(R.string.shared_string_show_on_map),
-				iconsCache.getThemedIcon(R.drawable.ic_show_on_map),
-				new View.OnClickListener() {
+		items.add(new PopUpMenuItem.Builder(app)
+				.setTitleId(R.string.shared_string_show_on_map)
+				.setIcon(iconsCache.getThemedIcon(R.drawable.ic_show_on_map))
+				.setOnClickListener(new View.OnClickListener() {
 					@Override
 					public void onClick(View v) {
 						showGpxOnMap(gpxInfo);
 					}
-				}
-		));
+				})
+				.create()
+		);
 
 		GPXTrackAnalysis analysis;
 		if ((analysis = getGpxTrackAnalysis(gpxInfo, app, null)) != null) {
 			if (analysis.totalDistance != 0 && !gpxInfo.currentlyRecordingTrack) {
-				items.add(new SimplePopUpMenuItem(
-						getString(R.string.analyze_on_map),
-						iconsCache.getThemedIcon(R.drawable.ic_action_info_dark),
-						new View.OnClickListener() {
+				items.add(new PopUpMenuItem.Builder(app)
+						.setTitleId(R.string.analyze_on_map)
+						.setIcon(iconsCache.getThemedIcon(R.drawable.ic_action_info_dark))
+						.setOnClickListener(new View.OnClickListener() {
 							@Override
 							public void onClick(View v) {
 								new OpenGpxDetailsTask(gpxInfo).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
 							}
-						}
-				));
+						})
+						.create()
+				);
 			}
 		}
 
-		items.add(new SimplePopUpMenuItem(
-				getString(R.string.shared_string_move),
-				iconsCache.getThemedIcon(R.drawable.ic_action_folder_stroke),
-				new View.OnClickListener() {
+		items.add(new PopUpMenuItem.Builder(app)
+				.setTitleId(R.string.shared_string_move)
+				.setIcon(iconsCache.getThemedIcon(R.drawable.ic_action_folder_stroke))
+				.setOnClickListener(new View.OnClickListener() {
 					@Override
 					public void onClick(View v) {
 						moveGpx(gpxInfo);
 					}
-				}
-		));
+				})
+				.create()
+		);
 
-		items.add(new SimplePopUpMenuItem(
-				getString(R.string.shared_string_rename),
-				iconsCache.getThemedIcon(R.drawable.ic_action_edit_dark),
-				new View.OnClickListener() {
+		items.add(new PopUpMenuItem.Builder(app)
+				.setTitleId(R.string.shared_string_rename)
+				.setIcon(iconsCache.getThemedIcon(R.drawable.ic_action_edit_dark))
+				.setOnClickListener(new View.OnClickListener() {
 					@Override
 					public void onClick(View v) {
-						FileUtils.renameFile(getActivity(), gpxInfo.file, new RenameCallback() {
-							@Override
-							public void renamedTo(File file) {
-								asyncLoader = new LoadGpxTask();
-								asyncLoader.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, getActivity());
-							}
-						});
+						FragmentActivity activity = getActivity();
+						if (activity != null) {
+							FileUtils.renameFile(activity, gpxInfo.file, AvailableGPXFragment.this, false);
+						}
 					}
-				}
-		));
+				})
+				.create()
+		);
 
 		Drawable shareIcon = iconsCache.getThemedIcon((R.drawable.ic_action_gshare_dark));
-		items.add(new SimplePopUpMenuItem(
-				getString(R.string.shared_string_share),
-				AndroidUtils.getDrawableForDirection(app, shareIcon),
-				new View.OnClickListener() {
+		items.add(new PopUpMenuItem.Builder(app)
+				.setTitleId(R.string.shared_string_share)
+				.setIcon(AndroidUtils.getDrawableForDirection(app, shareIcon))
+				.setOnClickListener(new View.OnClickListener() {
 					@Override
 					public void onClick(View v) {
 						final Uri fileUri = AndroidUtils.getUriForFile(getMyApplication(), gpxInfo.file);
@@ -1548,27 +1473,29 @@ public class AvailableGPXFragment extends OsmandExpandableListFragment implement
 						sendIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 						startActivity(sendIntent);
 					}
-				}
-		));
+				})
+				.create()
+		);
 
 		final OsmEditingPlugin osmEditingPlugin = OsmandPlugin.getEnabledPlugin(OsmEditingPlugin.class);
 		if (osmEditingPlugin != null && osmEditingPlugin.isActive()) {
-			items.add(new SimplePopUpMenuItem(
-					getString(R.string.shared_string_export),
-					iconsCache.getThemedIcon(R.drawable.ic_action_export),
-					new View.OnClickListener() {
+			items.add(new PopUpMenuItem.Builder(app)
+					.setTitleId(R.string.shared_string_export)
+					.setIcon(iconsCache.getThemedIcon(R.drawable.ic_action_export))
+					.setOnClickListener(new View.OnClickListener() {
 						@Override
 						public void onClick(View v) {
 							osmEditingPlugin.sendGPXFiles(getActivity(), AvailableGPXFragment.this, gpxInfo);
 						}
-					}
-			));
+					})
+					.create()
+			);
 		}
 
-		items.add(new SimplePopUpMenuItem(
-				getString(R.string.shared_string_delete),
-				iconsCache.getThemedIcon(R.drawable.ic_action_delete_dark),
-				new View.OnClickListener() {
+		items.add(new PopUpMenuItem.Builder(app)
+				.setTitleId(R.string.shared_string_delete)
+				.setIcon(iconsCache.getThemedIcon(R.drawable.ic_action_delete_dark))
+				.setOnClickListener(new View.OnClickListener() {
 					@Override
 					public void onClick(View v) {
 						AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
@@ -1583,21 +1510,10 @@ public class AvailableGPXFragment extends OsmandExpandableListFragment implement
 						builder.setNegativeButton(R.string.shared_string_cancel, null);
 						builder.show();
 					}
-				}
-		));
-
-		UiUtilities.createListPopupWindow(
-				getContext(), v, v.getWidth(), items, new AdapterView.OnItemClickListener() {
-					@Override
-					public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-						if (position < items.size()) {
-							View.OnClickListener listener = items.get(position).getOnClickListener();
-							if (listener != null) {
-								listener.onClick(view);
-							}
-						}
-					}
-				}).show();
+				})
+				.create()
+		);
+		new PopUpMenuHelper.Builder(v, items, nightMode).show();
 	}
 
 	public class DeleteGpxTask extends AsyncTask<GpxInfo, GpxInfo, String> {
@@ -1699,20 +1615,7 @@ public class AvailableGPXFragment extends OsmandExpandableListFragment implement
 		GpxInfo item = allGpxAdapter.getChild(groupPosition, childPosition);
 
 		if (!selectionMode) {
-			Intent newIntent = new Intent(getActivity(), getMyApplication().getAppCustomization().getTrackActivity());
-			// causes wrong position caching: newIntent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-			if (item.currentlyRecordingTrack) {
-				newIntent.putExtra(TrackActivity.CURRENT_RECORDING, true);
-			} else {
-				newIntent.putExtra(TrackActivity.TRACK_FILE_NAME, item.file.getAbsolutePath());
-			}
-			newIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-			startActivity(newIntent);
-			// item.setExpanded(!item.isExpanded());
-			// if (item.isExpanded()) {
-			// descriptionLoader = new LoadLocalIndexDescriptionTask();
-			// descriptionLoader.execute(item);
-			// }
+			openTrack(getActivity(), item.file);
 		} else {
 			if (!selectedItems.contains(item)) {
 				selectedItems.add(item);

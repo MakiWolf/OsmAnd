@@ -12,11 +12,14 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.ColorRes;
+import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
 import net.osmand.AndroidUtils;
 import net.osmand.GPXUtilities.GPXFile;
+import net.osmand.PlatformUtil;
 import net.osmand.StateChangedListener;
 import net.osmand.plus.OsmAndLocationSimulation;
 import net.osmand.plus.OsmandApplication;
@@ -31,6 +34,7 @@ import net.osmand.plus.base.bottomsheetmenu.BottomSheetItemWithDescription;
 import net.osmand.plus.base.bottomsheetmenu.SimpleBottomSheetItem;
 import net.osmand.plus.base.bottomsheetmenu.simpleitems.DividerStartItem;
 import net.osmand.plus.base.bottomsheetmenu.simpleitems.TitleItem;
+import net.osmand.plus.measurementtool.MeasurementToolFragment;
 import net.osmand.plus.routepreparationmenu.RoutingOptionsHelper.AvoidPTTypesRoutingParameter;
 import net.osmand.plus.routepreparationmenu.RoutingOptionsHelper.AvoidRoadsRoutingParameter;
 import net.osmand.plus.routepreparationmenu.RoutingOptionsHelper.DividerItem;
@@ -45,20 +49,35 @@ import net.osmand.plus.routepreparationmenu.RoutingOptionsHelper.TimeConditional
 import net.osmand.plus.routing.RouteProvider;
 import net.osmand.plus.routing.RoutingHelper;
 import net.osmand.plus.settings.backend.ApplicationMode;
+import net.osmand.plus.settings.backend.CommonPreference;
 import net.osmand.plus.settings.backend.OsmandSettings;
+import net.osmand.plus.settings.bottomsheets.ElevationDateBottomSheet;
 import net.osmand.plus.settings.fragments.BaseSettingsFragment;
+import net.osmand.plus.settings.fragments.BaseSettingsFragment.SettingsScreenType;
 import net.osmand.router.GeneralRouter;
+import net.osmand.router.GeneralRouter.RoutingParameter;
 import net.osmand.util.Algorithms;
 
+import org.apache.commons.logging.Log;
+
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import static net.osmand.plus.routepreparationmenu.RoutingOptionsHelper.DRIVING_STYLE;
+import static net.osmand.plus.settings.fragments.RouteParametersFragment.RELIEF_SMOOTHNESS_FACTOR;
+import static net.osmand.plus.settings.fragments.RouteParametersFragment.getRoutingParameterTitle;
+import static net.osmand.plus.settings.fragments.RouteParametersFragment.isRoutingParameterSelected;
+import static net.osmand.router.GeneralRouter.USE_HEIGHT_OBSTACLES;
 
 public class RouteOptionsBottomSheet extends MenuBottomSheetDialogFragment {
 
-	public static final String TAG = "RouteOptionsBottomSheet";
+	public static final String TAG = RouteOptionsBottomSheet.class.getSimpleName();
+	private static final Log LOG = PlatformUtil.getLog(RouteOptionsBottomSheet.class);
+	public static final String APP_MODE_KEY = "APP_MODE_KEY";
+	public static final String DIALOG_MODE_KEY = "DIALOG_MODE_KEY";
 
 	private OsmandApplication app;
 	private OsmandSettings settings;
@@ -68,18 +87,68 @@ public class RouteOptionsBottomSheet extends MenuBottomSheetDialogFragment {
 	@ColorRes
 	private int selectedModeColorId;
 	private boolean currentMuteState;
+	private boolean currentUseHeightState;
 	private MapActivity mapActivity;
-	StateChangedListener<Boolean> voiceMuteChangeListener;
+	private CommonPreference<Boolean> useHeightPref;
+	private StateChangedListener<Boolean> voiceMuteChangeListener;
+	private StateChangedListener<Boolean> useHeightChangeListener;
+	private List<RoutingParameter> reliefParameters = new ArrayList<>();
+	private DialogMode dialogMode;
+
+	public enum DialogMode {
+		DIRECTIONS(),
+		PLAN_ROUTE(MuteSoundRoutingParameter.class,
+				RouteSimulationItem.class,
+				GpxLocalRoutingParameter.class,
+				ShowAlongTheRouteItem.class);
+
+		private final Class<? extends LocalRoutingParameter>[] excludeParameters;
+
+		@SafeVarargs
+		DialogMode(Class<? extends LocalRoutingParameter> ... excludeParameters) {
+			this.excludeParameters = excludeParameters;
+		}
+
+		public boolean isAvailableParameter(LocalRoutingParameter parameter) {
+			for (Class<? extends LocalRoutingParameter> c : excludeParameters) {
+				if (Algorithms.objectEquals(parameter.getClass(), c)) {
+					return false;
+				}
+			}
+			return true;
+		}
+
+		public static DialogMode getModeByName(String modeName) {
+			if (modeName != null) {
+				return valueOf(modeName);
+			}
+			return DIRECTIONS;
+		}
+	}
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		app = getMyApplication();
+		Bundle args = getArguments();
+		if (args != null) {
+			String appMode = args.getString(APP_MODE_KEY, null);
+			if (appMode != null) {
+				applicationMode = ApplicationMode.valueOfStringKey(appMode, null);
+			}
+			String dialogModeName = args.getString(DIALOG_MODE_KEY, null);
+			dialogMode = DialogMode.getModeByName(dialogModeName);
+		}
+		app = requiredMyApplication();
 		settings = app.getSettings();
 		routingHelper = app.getRoutingHelper();
 		routingOptionsHelper = app.getRoutingOptionsHelper();
 		mapActivity = getMapActivity();
-		applicationMode = routingHelper.getAppMode();
+		if (applicationMode == null) {
+			applicationMode = routingHelper.getAppMode();
+		}
+		if (dialogMode == null) {
+			dialogMode = DialogMode.DIRECTIONS;
+		}
 		selectedModeColorId = applicationMode.getIconColorInfo().getColor(nightMode);
 		voiceMuteChangeListener = new StateChangedListener<Boolean>() {
 			@Override
@@ -87,16 +156,14 @@ public class RouteOptionsBottomSheet extends MenuBottomSheetDialogFragment {
 				updateWhenMuteChanged();
 			}
 		};
-	}
-
-	public void updateWhenMuteChanged() {
-		if (app != null) {
-			boolean changedState = app.getSettings().VOICE_MUTE.getModeValue(applicationMode);
-			if (changedState != currentMuteState) {
-				currentMuteState = changedState;
-				updateParameters();
+		useHeightChangeListener = new StateChangedListener<Boolean>() {
+			@Override
+			public void stateChanged(Boolean change) {
+				updateWhenUseHeightChanged();
 			}
-		}
+		};
+		useHeightPref = settings.getCustomRoutingBooleanProperty(USE_HEIGHT_OBSTACLES, false);
+		reliefParameters = getReliefParameters();
 	}
 
 	@Override
@@ -104,10 +171,15 @@ public class RouteOptionsBottomSheet extends MenuBottomSheetDialogFragment {
 		items.add(new TitleItem(app.getString(R.string.shared_string_settings), nightMode ? R.color.active_color_primary_dark : R.color.active_color_primary_light));
 
 		List<LocalRoutingParameter> list = getRoutingParameters(applicationMode);
-
 		for (final LocalRoutingParameter optionsItem : list) {
+			if (!dialogMode.isAvailableParameter(optionsItem)) {
+				continue;
+			}
+
 			if (optionsItem instanceof DividerItem) {
-				items.add(new DividerStartItem(app));
+				if (isDividerRequired()) {
+					items.add(new DividerStartItem(app));
+				}
 			} else if (optionsItem instanceof MuteSoundRoutingParameter) {
 				items.add(createMuteSoundItem(optionsItem));
 			} else if (optionsItem instanceof ShowAlongTheRouteItem) {
@@ -124,10 +196,17 @@ public class RouteOptionsBottomSheet extends MenuBottomSheetDialogFragment {
 				items.add(createTimeConditionalRoutingItem(optionsItem));
 			} else if (optionsItem instanceof OtherSettingsRoutingParameter) {
 				items.add(createOtherSettingsRoutingItem(optionsItem));
+			} else if (USE_HEIGHT_OBSTACLES.equals(optionsItem.getKey()) && hasReliefParameters()) {
+				items.add(inflateElevationParameter(optionsItem));
 			} else {
 				inflateRoutingParameter(optionsItem);
 			}
 		}
+	}
+
+	private boolean isDividerRequired() {
+		// do not show two dividers at once
+		return items.size() > 1 && !(items.get(items.size() - 1) instanceof DividerStartItem);
 	}
 
 	@Override
@@ -139,12 +218,17 @@ public class RouteOptionsBottomSheet extends MenuBottomSheetDialogFragment {
 				itemWithCompoundButton.setChecked(itemWithCompoundButton.isChecked());
 			}
 		}
+		currentUseHeightState = useHeightPref.getModeValue(applicationMode);
+		currentMuteState = app.getSettings().VOICE_MUTE.getModeValue(applicationMode);
+
+		useHeightPref.addListener(useHeightChangeListener);
 		app.getSettings().VOICE_MUTE.addListener(voiceMuteChangeListener);
 	}
 
 	@Override
 	public void onPause() {
 		super.onPause();
+		useHeightPref.removeListener(useHeightChangeListener);
 		app.getSettings().VOICE_MUTE.removeListener(voiceMuteChangeListener);
 	}
 
@@ -164,6 +248,24 @@ public class RouteOptionsBottomSheet extends MenuBottomSheetDialogFragment {
 				&& resultCode == ShowAlongTheRouteBottomSheet.SHOW_CONTENT_ITEM_REQUEST_CODE) {
 			mapActivity.getMapRouteInfoMenu().hide();
 			dismiss();
+		}
+	}
+
+	public void updateWhenMuteChanged() {
+		boolean changedState = app.getSettings().VOICE_MUTE.getModeValue(applicationMode);
+		if (changedState != currentMuteState) {
+			currentMuteState = changedState;
+			updateParameters();
+			updateMenu();
+		}
+	}
+
+	public void updateWhenUseHeightChanged() {
+		boolean changedState = useHeightPref.getModeValue(applicationMode);
+		if (changedState != currentUseHeightState) {
+			currentUseHeightState = changedState;
+			updateParameters();
+			updateMenu();
 		}
 	}
 
@@ -216,8 +318,7 @@ public class RouteOptionsBottomSheet extends MenuBottomSheetDialogFragment {
 		voicePromptsBtn.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				BaseSettingsFragment.showInstance(
-						mapActivity, BaseSettingsFragment.SettingsScreenType.VOICE_ANNOUNCES);
+				BaseSettingsFragment.showInstance(mapActivity, SettingsScreenType.VOICE_ANNOUNCES);
 				dismiss();
 			}
 		});
@@ -225,6 +326,62 @@ public class RouteOptionsBottomSheet extends MenuBottomSheetDialogFragment {
 		return new BaseBottomSheetItem.Builder()
 				.setCustomView(itemView)
 				.create();
+	}
+
+	private BaseBottomSheetItem inflateElevationParameter(final LocalRoutingParameter parameter) {
+		final BottomSheetItemWithCompoundButton[] item = new BottomSheetItemWithCompoundButton[1];
+		final boolean active = !useHeightPref.getModeValue(applicationMode);
+		final View itemView = UiUtilities.getInflater(app, nightMode).inflate(
+				R.layout.bottom_sheet_item_with_switch_and_dialog, null, false);
+		final SwitchCompat switchButton = itemView.findViewById(R.id.compound_button);
+		View itemsContainer = itemView.findViewById(R.id.selectable_list_item);
+		itemsContainer.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				if (USE_HEIGHT_OBSTACLES.equals(parameter.getKey()) && hasReliefParameters()) {
+					FragmentManager fm = getFragmentManager();
+					if (fm != null) {
+						ElevationDateBottomSheet.showInstance(fm, applicationMode, RouteOptionsBottomSheet.this, false);
+					}
+				}
+			}
+		});
+
+		switchButton.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				applyParameter(item[0], parameter);
+				item[0].setDescription(getElevationDescription(parameter));
+				switchButton.setChecked(parameter.isSelected(settings));
+			}
+		});
+
+		item[0] = (BottomSheetItemWithCompoundButton) new BottomSheetItemWithCompoundButton.Builder()
+				.setChecked(!active)
+				.setCompoundButtonColorId(selectedModeColorId)
+				.setDescription(getElevationDescription(parameter))
+				.setIcon(getContentIcon(active ? parameter.getActiveIconId() : parameter.getDisabledIconId()))
+				.setTitle(getString(R.string.routing_attr_height_obstacles_name))
+				.setCustomView(itemView)
+				.create();
+
+		return item[0];
+	}
+
+	private String getElevationDescription(LocalRoutingParameter parameter) {
+		String description;
+		if (parameter.isSelected(settings)) {
+			description = getString(R.string.shared_string_enabled);
+			for (RoutingParameter routingParameter : reliefParameters) {
+				if (isRoutingParameterSelected(settings, applicationMode, routingParameter)) {
+					description = getString(R.string.ltr_or_rtl_combine_via_comma, description,
+							getRoutingParameterTitle(app, routingParameter));
+				}
+			}
+		} else {
+			description = getString(R.string.shared_string_disabled);
+		}
+		return description;
 	}
 
 	private BaseBottomSheetItem createTimeConditionalRoutingItem(final LocalRoutingParameter optionsItem) {
@@ -241,7 +398,7 @@ public class RouteOptionsBottomSheet extends MenuBottomSheetDialogFragment {
 						boolean enabled = !settings.ENABLE_TIME_CONDITIONAL_ROUTING.getModeValue(applicationMode);
 						settings.ENABLE_TIME_CONDITIONAL_ROUTING.setModeValue(applicationMode, enabled);
 						timeConditionalRoutingItem[0].setChecked(enabled);
-						app.getRoutingHelper().recalculateRouteDueToSettingsChange();
+						app.getRoutingHelper().onSettingsChanged(applicationMode, true);
 					}
 				})
 				.create();
@@ -314,6 +471,7 @@ public class RouteOptionsBottomSheet extends MenuBottomSheetDialogFragment {
 						AvoidRoadsBottomSheetDialogFragment avoidRoadsFragment = new AvoidRoadsBottomSheetDialogFragment();
 						avoidRoadsFragment.setTargetFragment(RouteOptionsBottomSheet.this, AvoidRoadsBottomSheetDialogFragment.REQUEST_CODE);
 						avoidRoadsFragment.setCompoundButtonColorId(selectedModeColorId);
+						avoidRoadsFragment.setApplicationMode(applicationMode);
 						avoidRoadsFragment.show(mapActivity.getSupportFragmentManager(), AvoidRoadsBottomSheetDialogFragment.TAG);
 						updateMenu();
 					}
@@ -386,8 +544,18 @@ public class RouteOptionsBottomSheet extends MenuBottomSheetDialogFragment {
 					@Override
 					public void onClick(View view) {
 						dismiss();
-						BaseSettingsFragment.showInstance(mapActivity, BaseSettingsFragment.SettingsScreenType.NAVIGATION,
-								mapActivity.getRoutingHelper().getAppMode());
+
+						if (dialogMode == DialogMode.PLAN_ROUTE) {
+							Fragment fragment = getTargetFragment();
+							if (fragment instanceof MeasurementToolFragment) {
+								((MeasurementToolFragment) fragment).getOnBackPressedCallback().setEnabled(false);
+							}
+						}
+
+						Bundle args = new Bundle();
+						args.putString(DIALOG_MODE_KEY, dialogMode.name());
+						BaseSettingsFragment.showInstance(mapActivity,
+								SettingsScreenType.NAVIGATION, applicationMode, args);
 					}
 				})
 				.create();
@@ -432,22 +600,14 @@ public class RouteOptionsBottomSheet extends MenuBottomSheetDialogFragment {
 				builder.setLayoutId(R.layout.bottom_sheet_item_with_switch_56dp);
 				if (parameter.routingParameter != null && parameter.routingParameter.getId().equals(GeneralRouter.USE_SHORTEST_WAY)) {
 					// if short route settings - it should be inverse of fast_route_mode
-					builder.setChecked(!settings.FAST_ROUTE_MODE.getModeValue(routingHelper.getAppMode()));
+					builder.setChecked(!settings.FAST_ROUTE_MODE.getModeValue(applicationMode));
 				} else {
 					builder.setChecked(parameter.isSelected(settings));
 				}
 				builder.setOnClickListener(new View.OnClickListener() {
 					@Override
 					public void onClick(View v) {
-						routingOptionsHelper.addNewRouteMenuParameter(applicationMode, parameter);
-						boolean selected = !parameter.isSelected(settings);
-						routingOptionsHelper.applyRoutingParameter(parameter, selected);
-						item[0].setChecked(selected);
-						int iconId = selected ? parameter.getActiveIconId() : parameter.getDisabledIconId();
-						if (iconId != -1) {
-							item[0].setIcon(getContentIcon(iconId));
-						}
-						updateMenu();
+						applyParameter(item[0], parameter);
 					}
 				});
 			}
@@ -459,11 +619,40 @@ public class RouteOptionsBottomSheet extends MenuBottomSheetDialogFragment {
 		}
 	}
 
+	private boolean hasReliefParameters() {
+		return !Algorithms.isEmpty(reliefParameters);
+	}
+
+	private List<RoutingParameter> getReliefParameters() {
+		List<RoutingParameter> reliefFactorParameters = new ArrayList<>();
+		Map<String, RoutingParameter> parameters = app.getRouter(applicationMode).getParameters();
+		for (Map.Entry<String, RoutingParameter> entry : parameters.entrySet()) {
+			RoutingParameter routingParameter = entry.getValue();
+			if (RELIEF_SMOOTHNESS_FACTOR.equals(routingParameter.getGroup())) {
+				reliefFactorParameters.add(routingParameter);
+			}
+		}
+		return reliefFactorParameters;
+	}
+
+	private void applyParameter(BottomSheetItemWithCompoundButton bottomSheetItem, LocalRoutingParameter parameter) {
+		routingOptionsHelper.addNewRouteMenuParameter(applicationMode, parameter);
+		boolean selected = !parameter.isSelected(settings);
+		routingOptionsHelper.applyRoutingParameter(parameter, selected);
+		bottomSheetItem.setChecked(selected);
+		int iconId = selected ? parameter.getActiveIconId() : parameter.getDisabledIconId();
+		if (iconId != -1) {
+			bottomSheetItem.setIcon(getContentIcon(iconId));
+		}
+		updateMenu();
+	}
+
 	private void updateMenu() {
 		MapActivity mapActivity = getMapActivity();
 		if (mapActivity != null) {
 			mapActivity.getMapRouteInfoMenu().updateMenu();
 		}
+
 	}
 
 	private List<LocalRoutingParameter> getRoutingParameters(ApplicationMode applicationMode) {
@@ -497,9 +686,28 @@ public class RouteOptionsBottomSheet extends MenuBottomSheetDialogFragment {
 		return (MapActivity) getActivity();
 	}
 
-	public static void showInstance(FragmentManager fragmentManager) {
-		RouteOptionsBottomSheet f = new RouteOptionsBottomSheet();
-		f.show(fragmentManager, RouteOptionsBottomSheet.TAG);
+	public static void showInstance(MapActivity mapActivity) {
+		showInstance(mapActivity, null, DialogMode.DIRECTIONS, null);
+	}
+
+	public static void showInstance(MapActivity mapActivity,
+	                                Fragment targetFragment,
+	                                DialogMode dialogMode,
+	                                String appModeKey) {
+		try {
+			FragmentManager fm = mapActivity.getSupportFragmentManager();
+			if (!fm.isStateSaved()) {
+				RouteOptionsBottomSheet fragment = new RouteOptionsBottomSheet();
+				Bundle args = new Bundle();
+				args.putString(APP_MODE_KEY, appModeKey);
+				args.putString(DIALOG_MODE_KEY, dialogMode.name());
+				fragment.setArguments(args);
+				fragment.setTargetFragment(targetFragment, 0);
+				fragment.show(fm, TAG);
+			}
+		} catch (RuntimeException e) {
+			LOG.error("showInstance", e);
+		}
 	}
 
 	public void updateParameters() {

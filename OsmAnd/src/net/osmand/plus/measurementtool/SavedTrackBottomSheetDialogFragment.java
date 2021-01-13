@@ -19,8 +19,10 @@ import net.osmand.plus.base.MenuBottomSheetDialogFragment;
 import net.osmand.plus.base.bottomsheetmenu.BottomSheetItemButton;
 import net.osmand.plus.base.bottomsheetmenu.SimpleBottomSheetItem;
 import net.osmand.plus.base.bottomsheetmenu.simpleitems.DividerItem;
-import net.osmand.plus.base.bottomsheetmenu.simpleitems.DividerSpaceItem;
+import net.osmand.plus.helpers.GpxUiHelper;
 import net.osmand.util.Algorithms;
+
+import java.io.File;
 
 public class SavedTrackBottomSheetDialogFragment extends MenuBottomSheetDialogFragment {
 
@@ -68,27 +70,55 @@ public class SavedTrackBottomSheetDialogFragment extends MenuBottomSheetDialogFr
 					}
 				})
 				.create());
+	}
 
-		items.add(new DividerSpaceItem(getContext(), contextPaddingSmall));
+	@Override
+	protected int getThirdBottomButtonTextId() {
+		return R.string.shared_string_share;
+	}
 
-		items.add(new BottomSheetItemButton.Builder()
-				.setButtonType(UiUtilities.DialogButtonType.SECONDARY)
-				.setTitle(getString(R.string.plan_route_create_new_route))
-				.setLayoutId(R.layout.bottom_sheet_button)
-				.setOnClickListener(new View.OnClickListener() {
-					@Override
-					public void onClick(View v) {
-						Activity activity = getActivity();
-						if (activity instanceof MapActivity) {
-							MeasurementToolFragment.showInstance(((MapActivity) activity).getSupportFragmentManager(),
-									((MapActivity) activity).getMapLocation());
-						}
-						dismiss();
-					}
-				})
-				.create());
+	@Override
+	protected void onThirdBottomButtonClick() {
+		FragmentActivity activity = getActivity();
+		if (activity != null) {
+			GpxUiHelper.shareGpx(activity, new File(fileName));
+		}
+		dismiss();
+	}
 
-		items.add(new DividerSpaceItem(getContext(), contextPaddingSmall));
+	@Override
+	protected UiUtilities.DialogButtonType getThirdBottomButtonType() {
+		return UiUtilities.DialogButtonType.SECONDARY;
+	}
+
+	@Override
+	protected int getSecondDividerHeight() {
+		return getResources().getDimensionPixelSize(R.dimen.content_padding_small);
+	}
+
+	@Override
+	protected int getRightBottomButtonTextId() {
+		return R.string.plan_route_create_new_route;
+	}
+
+	@Override
+	protected UiUtilities.DialogButtonType getRightBottomButtonType() {
+		return UiUtilities.DialogButtonType.SECONDARY;
+	}
+
+	@Override
+	protected void onRightBottomButtonClick() {
+		Activity activity = getActivity();
+		if (activity instanceof MapActivity) {
+			MeasurementToolFragment.showInstance(((MapActivity) activity).getSupportFragmentManager(),
+					((MapActivity) activity).getMapLocation());
+		}
+		dismiss();
+	}
+
+	@Override
+	protected int getFirstDividerHeight() {
+		return getResources().getDimensionPixelSize(R.dimen.context_menu_sub_info_height);
 	}
 
 	@Override

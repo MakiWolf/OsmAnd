@@ -33,7 +33,6 @@ import net.osmand.data.RotatedTileBox;
 import net.osmand.plus.GpxSelectionHelper.SelectedGpxFile;
 import net.osmand.plus.OsmandApplication;
 import net.osmand.plus.R;
-import net.osmand.plus.SimplePopUpMenuItemAdapter.SimplePopUpMenuItem;
 import net.osmand.plus.UiUtilities;
 import net.osmand.plus.UiUtilities.DialogButtonType;
 import net.osmand.plus.activities.MapActivity;
@@ -64,6 +63,8 @@ import net.osmand.plus.routing.RouteProvider.GPXRouteParamsBuilder;
 import net.osmand.plus.routing.RoutingHelper;
 import net.osmand.plus.settings.backend.ApplicationMode;
 import net.osmand.plus.views.layers.MapControlsLayer;
+import net.osmand.plus.widgets.popup.PopUpMenuHelper;
+import net.osmand.plus.widgets.popup.PopUpMenuItem;
 import net.osmand.util.Algorithms;
 
 import org.apache.commons.logging.Log;
@@ -156,6 +157,7 @@ public class FollowTrackFragment extends ContextMenuScrollFragment implements Ca
 		if (view != null) {
 			ImageButton closeButton = view.findViewById(R.id.close_button);
 			buttonsShadow = view.findViewById(R.id.buttons_shadow);
+			sortButton = view.findViewById(R.id.sort_button);
 			closeButton.setImageDrawable(getContentIcon(AndroidUtils.getNavigationIconResId(app)));
 			closeButton.setOnClickListener(new View.OnClickListener() {
 				@Override
@@ -219,6 +221,7 @@ public class FollowTrackFragment extends ContextMenuScrollFragment implements Ca
 				if (Algorithms.isEmpty(fileName)) {
 					fileName = app.getString(R.string.shared_string_gpx_track);
 				}
+				sortButton.setVisibility(View.GONE);
 				GPXInfo gpxInfo = new GPXInfo(fileName, file != null ? file.lastModified() : 0, file != null ? file.length() : 0);
 				TrackEditCard importTrackCard = new TrackEditCard(mapActivity, gpxInfo);
 				importTrackCard.setListener(this);
@@ -268,6 +271,7 @@ public class FollowTrackFragment extends ContextMenuScrollFragment implements Ca
 				tracksCard = new TracksToFollowCard(mapActivity, list, defaultCategory);
 				tracksCard.setListener(FollowTrackFragment.this);
 				getCardsContainer().addView(tracksCard.build(mapActivity));
+				sortButton.setVisibility(View.VISIBLE);
 			}
 		}
 	}
@@ -517,7 +521,7 @@ public class FollowTrackFragment extends ContextMenuScrollFragment implements Ca
 			}
 			mapActivity.getMapActions().setGPXRouteParams(gpxFile);
 			app.getTargetPointsHelper().updateRouteAndRefresh(true);
-			app.getRoutingHelper().recalculateRouteDueToSettingsChange();
+			app.getRoutingHelper().onSettingsChanged(true);
 		}
 	}
 
@@ -610,11 +614,12 @@ public class FollowTrackFragment extends ContextMenuScrollFragment implements Ca
 		sortButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				List<SimplePopUpMenuItem> items = new ArrayList<>();
+				List<PopUpMenuItem> items = new ArrayList<>();
 				for (final TracksSortByMode mode : TracksSortByMode.values()) {
-					items.add(new SimplePopUpMenuItem(getString(mode.getNameId()),
-							app.getUIUtilities().getThemedIcon(mode.getIconId()),
-							new View.OnClickListener() {
+					items.add(new PopUpMenuItem.Builder(app)
+							.setTitleId(mode.getNameId())
+							.setIcon(app.getUIUtilities().getThemedIcon(mode.getIconId()))
+							.setOnClickListener(new View.OnClickListener() {
 								@Override
 								public void onClick(View v) {
 									sortByMode = mode;
@@ -623,10 +628,12 @@ public class FollowTrackFragment extends ContextMenuScrollFragment implements Ca
 										tracksCard.setSortByMode(mode);
 									}
 								}
-							}, sortByMode == mode
-					));
+							})
+							.setSelected(sortByMode == mode)
+							.create()
+					);
 				}
-				UiUtilities.showPopUpMenu(v, items);
+				new PopUpMenuHelper.Builder(v, items, isNightMode()).show();
 			}
 		});
 	}
